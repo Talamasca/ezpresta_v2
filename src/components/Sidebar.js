@@ -26,7 +26,7 @@ const Sidebar = () => {
 
   const menuItems = [
     { text: "Tableau de bord", icon: <DashboardIcon />, path: "/dashboard" },
-    { text: "Catalogue", icon: <StoreIcon />, path: "/catalogue" },
+    { text: "Catalogue", icon: <StoreIcon />, path: "/Catalogue" },
     { text: "Clients", icon: <PeopleIcon />, path: "/Customers" },
     { text: "Agenda", icon: <EventIcon />, path: "/agenda" },
     { text: "Nouveau Rdv", icon: <AddCircleIcon />, path: "/new-appointment" },

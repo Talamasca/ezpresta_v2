@@ -15,14 +15,14 @@ import {
   Typography,
   Box,
   IconButton,
+  Fab,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import CustomerDetails from "../components/CustomerDetails";
 import Avatar from "@mui/material/Avatar";
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
-import Delete from "@mui/icons-material/Delete";
-import { Edit } from "@mui/icons-material";
+import { Delete, Edit, Add as AddIcon } from "@mui/icons-material";
 import CustomerForm from "../components/CustomerForm";
 
 //import "./Customers.css";
@@ -255,6 +255,34 @@ const Customers = () => {
         userId={currentUser.uid}
         onSave={handleSaveCustomer}
       />
+
+      <Fab
+        variant="extended"
+        color="primary"
+        aria-label="add"
+        sx={{
+          position: "fixed",
+          bottom: (theme) => theme.spacing(2),
+          right: (theme) => theme.spacing(2),
+          width: 58,
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          fontSize: 0,
+          transition: "width 0.5s, border-radius 0.5s, background-color 0.5s",
+          //paddingLeft: 25,
+          "&:hover": {
+            fontSize: 15,
+            width: 300,
+            borderRadius: 15,
+          },
+        }}
+        onClick={() => handleOpenForm(null, null)}
+      >
+        <AddIcon
+          sx={{ marginRight: (theme) => theme.spacing(1), fontSize: 32 }}
+        />
+        Ajouter un contact
+      </Fab>
     </>
   );
 };

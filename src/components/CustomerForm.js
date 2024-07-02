@@ -9,6 +9,7 @@ import {
   TextField,
   Box,
   CircularProgress,
+  Grid,
 } from "@mui/material";
 import { doc, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
@@ -97,90 +98,114 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
   }
 
   return (
-    <Dialog open={open} onClose={handleClose}>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle>
         {customerId ? "Edit Customer" : "Create Customer"}
       </DialogTitle>
       <DialogContent>
-        <TextField
-          autoFocus
-          margin="dense"
-          name="firstname"
-          label="First Name"
-          type="text"
-          fullWidth
-          value={formData.firstname}
-          onChange={handleChange}
-        />
-        <TextField
-          margin="dense"
-          name="email"
-          label="Email"
-          type="email"
-          fullWidth
-          value={formData.email}
-          onChange={handleChange}
-        />
-        <TextField
-          margin="dense"
-          name="phone"
-          label="Phone"
-          type="tel"
-          fullWidth
-          value={formData.phone}
-          onChange={handleChange}
-        />
-        <TextField
-          margin="dense"
-          name="userAddress"
-          label="Address"
-          type="text"
-          fullWidth
-          value={formData.userAddress}
-          onChange={handleChange}
-        />
-        <TextField
-          margin="dense"
-          name="userNote"
-          label="Note"
-          type="text"
-          fullWidth
-          value={formData.userNote}
-          onChange={handleChange}
-        />
-        <TextField
-          margin="dense"
-          name="company"
-          label="Company"
-          type="text"
-          fullWidth
-          value={formData.company}
-          onChange={handleChange}
-        />
-        <TextField
-          margin="dense"
-          name="source"
-          label="Source"
-          type="text"
-          fullWidth
-          value={formData.source}
-          onChange={handleChange}
-        />
-        <TextField
-          margin="dense"
-          name="sourceOther"
-          label="Source Other"
-          type="text"
-          fullWidth
-          value={formData.sourceOther}
-          onChange={handleChange}
-        />
+        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                label="First Name"
+                name="firstname"
+                value={formData.firstname}
+                onChange={handleChange}
+                sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                label="Email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                label="Phone"
+                name="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={handleChange}
+                sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Company"
+                name="company"
+                value={formData.company}
+                onChange={handleChange}
+                sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Address"
+                name="userAddress"
+                value={formData.userAddress}
+                onChange={handleChange}
+                sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Note"
+                name="userNote"
+                value={formData.userNote}
+                onChange={handleChange}
+                sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Source"
+                name="source"
+                value={formData.source}
+                onChange={handleChange}
+                sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                margin="normal"
+                fullWidth
+                label="Source Other"
+                name="sourceOther"
+                value={formData.sourceOther}
+                onChange={handleChange}
+                sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
+              />
+            </Grid>
+          </Grid>
+        </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="primary">
+        <Button onClick={handleClose} color="secondary">
           Cancel
         </Button>
-        <Button onClick={handleSubmit} color="primary">
+        <Button onClick={handleSubmit} color="primary" disabled={loading}>
           Save
         </Button>
       </DialogActions>

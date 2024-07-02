@@ -17,6 +17,7 @@ import Dashboard from "./pages/Dashboard";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { SnackbarProvider } from "notistack";
 import Customers from "./pages/Customers";
+import Catalogue from "./pages/Catalogue";
 
 const App = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -46,6 +47,7 @@ const App = () => {
                     <Routes>
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/customers" element={<Customers />} />
+                      <Route path="/catalogue" element={<Catalogue />} />
                       <Route
                         path="*"
                         element={<Navigate to="/dashboard" replace />}
