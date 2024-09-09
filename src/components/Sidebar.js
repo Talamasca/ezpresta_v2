@@ -30,7 +30,11 @@ const Sidebar = () => {
     { text: "Clients", icon: <PeopleIcon />, path: "/Customers" },
     { text: "Agenda", icon: <EventIcon />, path: "/agenda" },
     { text: "Nouveau Rdv", icon: <AddCircleIcon />, path: "/new-appointment" },
-    { text: "Nouvelle commande", icon: <AddCircleIcon />, path: "/new-order" },
+    {
+      text: "Nouvelle réservation",
+      icon: <AddCircleIcon />,
+      path: "/Reservation",
+    },
     { text: "Réglages", icon: <SettingsIcon />, path: "/settings" },
   ];
 

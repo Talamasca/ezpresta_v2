@@ -7,7 +7,7 @@ import {
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 const AuthContext = React.createContext();
 
@@ -71,8 +71,17 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  const updateUserData = async (newData) => {
+    if (currentUser) {
+      const userDoc = doc(db, `users/${currentUser.uid}`);
+      await updateDoc(userDoc, newData);
+      setCurrentUser({ ...currentUser, ...newData });
+    }
+  };
+
   const value = {
     currentUser,
+    updateUserData,
     signup,
     login,
     logout,

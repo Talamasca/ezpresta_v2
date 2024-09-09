@@ -98,7 +98,7 @@ const Catalogue = () => {
 
   const handleDeleteProduct = async (productId) => {
     try {
-      await deleteDoc(doc(db, `users/${currentUser.uid}/catalog`, productId));
+      await deleteDoc(doc(db, `     `, productId));
       setCatalog(catalog.filter((product) => product.id !== productId));
       enqueueSnackbar("Product deleted successfully", { variant: "success" });
     } catch (error) {

@@ -22,6 +22,7 @@ import PhoneIcon from "@mui/icons-material/Phone";
 import HomeIcon from "@mui/icons-material/Home";
 import NoteIcon from "@mui/icons-material/Note";
 import Link from "@mui/material/Link";
+import SourceIcon from "@mui/icons-material/Source";
 
 const formatPhoneNumber = (phoneNumber) => {
   if (!phoneNumber) return "";
@@ -138,6 +139,12 @@ const CustomerDetails = ({ open, handleClose, customer, customerId }) => {
                   <NoteIcon />
                 </ListItemIcon>
                 <ListItemText primary={customerData?.userNote} />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <SourceIcon />
+                </ListItemIcon>
+                <ListItemText primary={customerData?.source} />
               </ListItem>
             </List>
           </DialogContent>

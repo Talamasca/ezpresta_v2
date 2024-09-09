@@ -1,5 +1,7 @@
 // src/components/CustomerForm.js
 import React, { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
+
 import {
   Dialog,
   DialogTitle,
@@ -10,12 +12,21 @@ import {
   Box,
   CircularProgress,
   Grid,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { doc, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { useSnackbar } from "notistack";
+import validator from "validator";
 
 const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
+  const { currentUser } = useAuth();
+
+  if (!userId) {
+    userId = currentUser.uid;
+  }
+
   const [formData, setFormData] = useState({
     firstname: "",
     email: "",
@@ -27,7 +38,9 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
     sourceOther: "",
   });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const { enqueueSnackbar } = useSnackbar();
+  const [sources, setSources] = useState([]);
 
   useEffect(() => {
     const fetchCustomer = async () => {
@@ -47,15 +60,67 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
     }
   }, [customerId, userId]);
 
+  useEffect(() => {
+    const fetchSources = async () => {
+      if (userId) {
+        const sourcesCollection = collection(
+          db,
+          `users/${userId}/customerSource`
+        );
+        const sourcesSnapshot = await getDocs(sourcesCollection);
+        const sourcesList = sourcesSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          name: doc.data().name,
+        }));
+        setSources(sourcesList);
+      }
+    };
+
+    fetchSources();
+  }, [userId]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
+    // Clear errors on change
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: "",
+    }));
+    //
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+      sourceOther: value === "other" ? prevData.sourceOther : "",
+    }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.firstname.trim())
+      newErrors.firstname = "First name is required";
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else {
+      if (!validator.isEmail(formData.email))
+        newErrors.email = "Email is not valid";
+    }
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    } else {
+      if (!validator.isMobilePhone(formData.phone, "any", { strictMode: true }))
+        newErrors.phone = "Phone number is not valid";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0; // Return true if no errors
   };
 
   const handleSubmit = async () => {
+    if (!validateForm()) return; // Prevent submission if errors exist
+
     if (userId) {
       setLoading(true);
       const customerRef = doc(
@@ -115,6 +180,7 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
                 value={formData.firstname}
                 onChange={handleChange}
                 sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
+                helperText={errors["firstname"]}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -128,6 +194,7 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
                 value={formData.email}
                 onChange={handleChange}
                 sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
+                helperText={errors["email"]}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -141,6 +208,7 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
                 value={formData.phone}
                 onChange={handleChange}
                 sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
+                helperText={errors["phone"]}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -177,26 +245,37 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
+              <Select
                 margin="normal"
                 fullWidth
                 label="Source"
                 name="source"
                 value={formData.source}
                 onChange={handleChange}
-                sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Source Other"
-                name="sourceOther"
-                value={formData.sourceOther}
-                onChange={handleChange}
-                sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
-              />
+                displayEmpty
+              >
+                <MenuItem value="" disabled>
+                  Sélectionner une provenance
+                </MenuItem>
+                {sources.map((source) => (
+                  <MenuItem key={source.id} value={source.name}>
+                    {source.name}
+                  </MenuItem>
+                ))}
+                <MenuItem value="other">Autre</MenuItem>
+              </Select>
+
+              {formData.source === "other" && (
+                <TextField
+                  margin="normal"
+                  fullWidth
+                  label="Source (Autre)"
+                  name="sourceOther"
+                  value={formData.sourceOther}
+                  onChange={handleChange}
+                  sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
+                />
+              )}
             </Grid>
           </Grid>
         </Box>

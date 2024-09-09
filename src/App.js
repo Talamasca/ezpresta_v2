@@ -18,6 +18,8 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { SnackbarProvider } from "notistack";
 import Customers from "./pages/Customers";
 import Catalogue from "./pages/Catalogue";
+import Settings from "./pages/Settings";
+import Reservation from "./pages/Reservation";
 
 const App = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -48,6 +50,8 @@ const App = () => {
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/customers" element={<Customers />} />
                       <Route path="/catalogue" element={<Catalogue />} />
+                      <Route path="/reservation" element={<Reservation />} />
+                      <Route path="/settings" element={<Settings />} />
                       <Route
                         path="*"
                         element={<Navigate to="/dashboard" replace />}
