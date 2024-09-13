@@ -17,6 +17,8 @@ function Reservation() {
   const [openDialog, setOpenDialog] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
 
+  const [openCustomerForm, setOpenCustomerForm] = useState(false); // Pour gérer l'ouverture du formulaire
+
   useEffect(() => {
     const fetchCatalogAndClients = async () => {
       if (currentUser) {
@@ -59,6 +61,13 @@ function Reservation() {
     setOpenDialog(!openDialog);
   };
 
+  const handleCustomerSave = (newCustomer) => {
+    setClients((prevClients) => [...prevClients, newCustomer]); // Ajouter le nouveau client à la liste existante
+    setSelectedClient(newCustomer); // Sélectionner automatiquement le nouveau client
+    setOpenCustomerForm(false); // Fermer le formulaire après la sauvegarde
+    setOpenDialog(false); // Fermer le dialogue
+  };
+
   return (
     <div>
       <TextField
@@ -76,7 +85,7 @@ function Reservation() {
       </TextField>
       <Autocomplete
         options={clients}
-        getOptionLabel={(option) => option.firstname}
+        getOptionLabel={(option) => (option ? option.firstname : "")}
         style={{ width: 300 }}
         onChange={handleClientChange}
         renderInput={(params) => (
@@ -101,11 +110,7 @@ function Reservation() {
         <CustomerForm
           open={openDialog}
           handleClose={toggleDialog}
-          onSave={(newCustomer) => {
-            setClients((prevClients) => [...prevClients, newCustomer]);
-            setSelectedClient(newCustomer);
-            setOpenDialog(false);
-          }}
+          onSave={handleCustomerSave}
         />
       </Dialog>
     </div>

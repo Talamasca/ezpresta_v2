@@ -119,28 +119,27 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) return; // Prevent submission if errors exist
+    if (!validateForm()) return;
 
     if (userId) {
       setLoading(true);
-      const customerRef = doc(
-        db,
-        `users/${userId}/customers`,
-        customerId || new Date().getTime().toString()
-      );
+      const newCustomerId = customerId || new Date().getTime().toString();
+      const customerRef = doc(db, `users/${userId}/customers`, newCustomerId);
+
       try {
         await setDoc(customerRef, formData, { merge: true });
-        enqueueSnackbar("Customer saved successfully", { variant: "success" });
-        const customersRef = collection(db, `users/${userId}/customers`);
-        const snapshot = await getDocs(customersRef);
-        const customersList = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        onSave(customersList);
-        handleClose();
+        enqueueSnackbar("Client sauvegardé avec succès", {
+          variant: "success",
+        });
+
+        // Créer le nouveau client
+        const newCustomer = { id: newCustomerId, ...formData };
+
+        // Appeler onSave avec le nouveau client
+        onSave(newCustomer); // Ne passe que le nouveau client à Reservation.js
+        handleClose(); // Fermer le formulaire
       } catch (error) {
-        enqueueSnackbar("Error saving customer: " + error.message, {
+        enqueueSnackbar("Erreur lors de la sauvegarde : " + error.message, {
           variant: "error",
         });
       } finally {
