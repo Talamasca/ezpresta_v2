@@ -8,6 +8,11 @@ import { useSnackbar } from "notistack";
 import Autocomplete from "@mui/material/Autocomplete";
 import CustomerForm from "../components/CustomerForm";
 
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
+import frLocale from "date-fns/locale/fr";
+
 function Reservation() {
   const { currentUser } = useAuth();
   const [catalogItems, setCatalogItems] = useState([]);
@@ -16,6 +21,7 @@ function Reservation() {
   const [selectedClient, setSelectedClient] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
+  const [selectedDate, setSelectedDate] = useState(null);
 
   const [openCustomerForm, setOpenCustomerForm] = useState(false); // Pour gérer l'ouverture du formulaire
 
@@ -113,6 +119,19 @@ function Reservation() {
           onSave={handleCustomerSave}
         />
       </Dialog>
+
+      <LocalizationProvider dateAdapter={AdapterDateFns} locale={frLocale}>
+        <DatePicker
+          label="Date de la prestation"
+          value={selectedDate}
+          onChange={(newValue) => {
+            setSelectedDate(newValue);
+          }}
+          renderInput={(params) => (
+            <TextField {...params} fullWidth margin="normal" />
+          )}
+        />
+      </LocalizationProvider>
     </div>
   );
 }
