@@ -56,26 +56,18 @@ const Customers = () => {
   const [formOpen, setFormOpen] = useState(false);
 
   useEffect(() => {
-    console.log("on passe dans le useEffect");
     const fetchCustomers = async () => {
       if (currentUser) {
         try {
-          console.log("on passe dans le fetchCustomers");
-
           const customersRef = collection(
             db,
             `users/${currentUser.uid}/customers`
           );
           const snapshot = await getDocs(customersRef);
-
-          console.log("Snapshot Docs:", snapshot.docs);
-
           const customersList = snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
           }));
-
-          console.log("Customers List:", customersList);
 
           setCustomers(customersList);
           setLoading(false);
