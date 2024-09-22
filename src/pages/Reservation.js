@@ -1,17 +1,42 @@
+// Reservation.jsx
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { db } from "../firebase";
 import { collection, getDocs, query } from "firebase/firestore";
-import { TextField, MenuItem, Button, IconButton, Dialog } from "@mui/material";
+import {
+  TextField,
+  MenuItem,
+  Button,
+  Dialog,
+  Autocomplete as MUIAutocomplete,
+} from "@mui/material";
 import { PersonAdd as PersonAddIcon } from "@mui/icons-material";
 import { useSnackbar } from "notistack";
-import Autocomplete from "@mui/material/Autocomplete";
 import CustomerForm from "../components/CustomerForm";
 
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import frLocale from "date-fns/locale/fr";
+import LocationForm from "../components/LocationForm";
+import {
+  Checkbox,
+  IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+} from "@mui/material";
+import Paper from "@mui/material/Paper";
+import CancelIcon from "@mui/icons-material/Cancel";
+import {
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from "@mui/material";
 
 function Reservation() {
   const { currentUser } = useAuth();
@@ -23,7 +48,27 @@ function Reservation() {
   const { enqueueSnackbar } = useSnackbar();
   const [selectedDate, setSelectedDate] = useState(null);
 
-  const [openCustomerForm, setOpenCustomerForm] = useState(false); // Pour gérer l'ouverture du formulaire
+  const [openCustomerForm, setOpenCustomerForm] = useState(false);
+  const [openLocationModal, setOpenLocationModal] = useState(false);
+  const [locations, setLocations] = useState([]);
+
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [locationToRemove, setLocationToRemove] = useState(null);
+
+  const handleOpenConfirmDialog = (index) => {
+    setLocationToRemove(index);
+    setOpenConfirmDialog(true);
+  };
+
+  const handleCloseConfirmDialog = () => {
+    setOpenConfirmDialog(false);
+    setLocationToRemove(null);
+  };
+
+  const handleConfirmRemoveLocation = () => {
+    removeLocationByIndex(locationToRemove);
+    handleCloseConfirmDialog();
+  };
 
   useEffect(() => {
     const fetchCatalogAndClients = async () => {
@@ -45,9 +90,12 @@ function Reservation() {
             customerSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
           );
         } catch (error) {
-          enqueueSnackbar("Failed to load data: " + error.message, {
-            variant: "error",
-          });
+          enqueueSnackbar(
+            "Échec du chargement des données : " + error.message,
+            {
+              variant: "error",
+            }
+          );
         }
       }
     };
@@ -68,10 +116,38 @@ function Reservation() {
   };
 
   const handleCustomerSave = (newCustomer) => {
-    setClients((prevClients) => [...prevClients, newCustomer]); // Ajouter le nouveau client à la liste existante
-    setSelectedClient(newCustomer); // Sélectionner automatiquement le nouveau client
-    setOpenCustomerForm(false); // Fermer le formulaire après la sauvegarde
-    setOpenDialog(false); // Fermer le dialogue
+    setClients((prevClients) => [...prevClients, newCustomer]);
+    setSelectedClient(newCustomer);
+    setOpenCustomerForm(false);
+    setOpenDialog(false);
+  };
+
+  const handleOpenLocationModal = () => {
+    setOpenLocationModal(true);
+  };
+
+  const handleCloseLocationModal = () => {
+    setOpenLocationModal(false);
+  };
+
+  const handleLocationSave = (newLocation) => {
+    setLocations((prevLocations) => [...prevLocations, newLocation]);
+    enqueueSnackbar("Lieu ajouté avec succès", { variant: "success" });
+  };
+
+  const removeLocationByIndex = (indexToRemove) => {
+    setLocations((prevLocations) =>
+      prevLocations.filter((_, index) => index !== indexToRemove)
+    );
+  };
+
+  const setLocationAsDefault = (indexToSet) => {
+    setLocations((prevLocations) =>
+      prevLocations.map((location, index) => ({
+        ...location,
+        isDefault: index === indexToSet,
+      }))
+    );
   };
 
   return (
@@ -89,9 +165,11 @@ function Reservation() {
           </MenuItem>
         ))}
       </TextField>
-      <Autocomplete
+      <MUIAutocomplete
         options={clients}
-        getOptionLabel={(option) => (option ? option.firstname : "")}
+        getOptionLabel={(option) =>
+          option ? `${option.firstname} ${option.lastname}` : ""
+        }
         style={{ width: 300 }}
         onChange={handleClientChange}
         renderInput={(params) => (
@@ -132,6 +210,127 @@ function Reservation() {
           )}
         />
       </LocalizationProvider>
+
+      <Button
+        variant="outlined"
+        color="primary"
+        onClick={handleOpenLocationModal}
+        size="small"
+      >
+        Ajouter un lieu
+      </Button>
+
+      <Dialog
+        open={openLocationModal}
+        onClose={handleCloseLocationModal}
+        maxWidth="sm"
+        fullWidth
+      >
+        <LocationForm
+          selectedDate={selectedDate}
+          onClose={handleCloseLocationModal}
+          onSave={handleLocationSave}
+        />
+      </Dialog>
+
+      {/* Affichage des lieux ajoutés */}
+      {locations.map((location, index) => (
+        <div key={index}>
+          <p>Date : {location.eventDate.toLocaleString()}</p>
+          <p>Événement : {location.eventName}</p>
+          <p>
+            Lieu :{" "}
+            {location.place
+              ? location.place.description || location.place.formatted_address
+              : ""}
+          </p>
+        </div>
+      ))}
+
+      {locations.length >= 1 ? (
+        <TableContainer component={Paper}>
+          <Table aria-label="simple table">
+            <TableHead>
+              <TableRow>
+                <TableCell align="left">Lieu Principal</TableCell>
+                <TableCell align="center">Date</TableCell>
+                <TableCell align="center">Lieu</TableCell>
+                <TableCell align="center">Note</TableCell>
+                {/* <TableCell  align="center">
+                                                        Distance
+                                                    </TableCell> */}
+                <TableCell align="center">Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {locations.map((v, index) => {
+                return (
+                  <TableRow key={v.place_id + index.toString()}>
+                    <TableCell align="left">
+                      <Checkbox
+                        checked={v.isDefault}
+                        onChange={() => setLocationAsDefault(index)}
+                        inputProps={{ "aria-label": "primary checkbox" }}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      {new Date(v.eventDate).toLocaleString("fr-FR", {
+                        year: "numeric",
+                        month: "numeric",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "numeric",
+                      })}
+                    </TableCell>
+                    <TableCell align="center">
+                      {v.place
+                        ? v.place.description || v.place.formatted_address
+                        : ""}
+                    </TableCell>
+                    <TableCell align="center">{v.eventName}</TableCell>
+                    {/* <TableCell  align="center">
+                                                                {v.distance || "Loading..."}
+                                                            </TableCell> */}
+                    <TableCell align="center">
+                      <IconButton
+                        type="button"
+                        variant="contained"
+                        color="secondary"
+                        size="medium"
+                        //disabled={isSubmitting}
+                        onClick={() => {
+                          //_removeLocationById(index);
+                          //removeLocationByIndex(index);
+                          handleOpenConfirmDialog(index);
+                        }}
+                      >
+                        <CancelIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      ) : null}
+
+      <Dialog open={openConfirmDialog} onClose={handleCloseConfirmDialog}>
+        <DialogTitle>Confirmer la suppression</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Êtes-vous sûr de vouloir supprimer ce lieu ?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirmDialog} color="primary">
+            Annuler
+          </Button>
+          <Button onClick={handleConfirmRemoveLocation} color="secondary">
+            Supprimer
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

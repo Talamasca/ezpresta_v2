@@ -43,8 +43,21 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
   const [sources, setSources] = useState([]);
 
   useEffect(() => {
-    const fetchCustomer = async () => {
-      if (customerId && userId) {
+    if (!customerId) {
+      // Si customerId est null, réinitialisez le formulaire pour un nouveau client
+      setFormData({
+        firstname: "",
+        email: "",
+        phone: "",
+        userAddress: "",
+        userNote: "",
+        company: "",
+        source: "",
+        sourceOther: "",
+      });
+    } else {
+      // Charger les données du client existant
+      const fetchCustomer = async () => {
         setLoading(true);
         const customerDoc = doc(db, `users/${userId}/customers`, customerId);
         const docSnap = await getDoc(customerDoc);
@@ -52,10 +65,8 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
           setFormData(docSnap.data());
         }
         setLoading(false);
-      }
-    };
+      };
 
-    if (customerId) {
       fetchCustomer();
     }
   }, [customerId, userId]);

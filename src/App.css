@@ -35,6 +35,10 @@
     height: auto;
 }
 
+.pac-container {
+  z-index: 2147483647 !important; /* Un z-index très élevé pour être au-dessus du modal */
+}
+
 /*
 .logo-container {
     display: flex;
