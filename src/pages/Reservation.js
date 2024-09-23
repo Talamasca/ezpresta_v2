@@ -37,6 +37,8 @@ import {
   DialogContentText,
   DialogTitle,
 } from "@mui/material";
+import EditLocationIcon from "@mui/icons-material/EditLocation";
+import AddFeeDialog from "../components/AddFeeDialog";
 
 function Reservation() {
   const { currentUser } = useAuth();
@@ -47,11 +49,12 @@ function Reservation() {
   const [openDialog, setOpenDialog] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
   const [selectedDate, setSelectedDate] = useState(null);
-
+  const [fees, setFees] = useState([]); // Stocker les frais supplémentaires
+  const [totalPrice, setTotalPrice] = useState(0); // Prix total (prestation + frais)
+  const [servicePrice, setServicePrice] = useState(0); // Stocker le prix de la prestation
   const [openCustomerForm, setOpenCustomerForm] = useState(false);
   const [openLocationModal, setOpenLocationModal] = useState(false);
   const [locations, setLocations] = useState([]);
-
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [locationToRemove, setLocationToRemove] = useState(null);
 
@@ -103,8 +106,25 @@ function Reservation() {
     fetchCatalogAndClients();
   }, [currentUser, enqueueSnackbar]);
 
+  // Calculer le prix total dès qu'il y a un changement dans les frais ou la prestation sélectionnée
+  useEffect(() => {
+    const totalFees = fees.reduce((acc, fee) => acc + fee.feeAmount, 0);
+    setTotalPrice(parseFloat(servicePrice) + parseFloat(totalFees));
+  }, [servicePrice, fees]);
+
   const handleServiceChange = (event) => {
-    setSelectedService(event.target.value);
+    const selectedServiceId = event.target.value;
+    setSelectedService(selectedServiceId);
+
+    // Trouver le prix de la prestation sélectionnée
+    const selectedService = catalogItems.find(
+      (item) => item.id === selectedServiceId
+    );
+    setServicePrice(selectedService ? selectedService.price : 0);
+  };
+
+  const handleAddFee = (newFee) => {
+    setFees((prevFees) => [...prevFees, newFee]);
   };
 
   const handleClientChange = (event, newValue) => {
@@ -147,6 +167,12 @@ function Reservation() {
         ...location,
         isDefault: index === indexToSet,
       }))
+    );
+  };
+
+  const removeFeeByIndex = (indexToRemove) => {
+    setFees((prevFees) =>
+      prevFees.filter((_, index) => index !== indexToRemove)
     );
   };
 
@@ -216,6 +242,7 @@ function Reservation() {
         color="primary"
         onClick={handleOpenLocationModal}
         size="small"
+        startIcon={<EditLocationIcon />}
       >
         Ajouter un lieu
       </Button>
@@ -331,6 +358,51 @@ function Reservation() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <fieldset>
+        <legend>Options</legend>
+        {/* Bouton pour ajouter des frais supplémentaires */}
+        <AddFeeDialog onAddFee={handleAddFee} />
+
+        {/* Liste des frais supplémentaires */}
+        <TableContainer component={Paper}>
+          <Table aria-label="simple table">
+            <TableHead>
+              <TableRow>
+                <TableCell align="center">Titre</TableCell>
+                <TableCell align="center">Montant</TableCell>
+                <TableCell align="center">Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {fees.map((fee, index) => (
+                <TableRow key={index}>
+                  <TableCell>{fee.feeName}</TableCell>
+                  <TableCell align="right">{fee.feeAmount} €</TableCell>
+                  <TableCell align="center">
+                    <IconButton
+                      type="button"
+                      color="secondary"
+                      size="small"
+                      onClick={() => removeFeeByIndex(index)}
+                    >
+                      <CancelIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {/* Affichage du prix total */}
+        <h3>Prix de la prestation : {servicePrice} €</h3>
+        <h3>
+          Frais supplémentaires :{" "}
+          {fees.reduce((acc, fee) => acc + fee.feeAmount, 0)} €
+        </h3>
+        <h2>Prix total : {totalPrice} €</h2>
+      </fieldset>
     </div>
   );
 }
