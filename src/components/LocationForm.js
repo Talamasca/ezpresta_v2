@@ -24,7 +24,7 @@ function LocationForm({ selectedDate, onClose, onSave }) {
   const [loading, setLoading] = useState(false);
 
   const scriptLoaded = useLoadScript(
-    `https://maps.googleapis.com/maps/api/js?key=AIzaSyCYVIg1bNAfhwm7CaHjnWo5RApHWgoG6FY&libraries=places&language=fr`
+    `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&libraries=places&language=fr`
   );
 
   const fetchPlaces = (request, callback) => {
