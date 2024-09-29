@@ -11,15 +11,16 @@ import {
   Divider,
 } from "@mui/material";
 import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import Avatar from "@mui/material/Avatar";
+import "../App.css";
+import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import SettingsIcon from "@mui/icons-material/Settings";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import StoreIcon from "@mui/icons-material/Store";
 import PeopleIcon from "@mui/icons-material/People";
 import EventIcon from "@mui/icons-material/Event";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-import SettingsIcon from "@mui/icons-material/Settings";
-import { useAuth } from "../contexts/AuthContext";
-import Avatar from "@mui/material/Avatar";
-import "../App.css";
 
 const Sidebar = () => {
   const { currentUser } = useAuth();
@@ -32,7 +33,7 @@ const Sidebar = () => {
     { text: "Nouveau Rdv", icon: <AddCircleIcon />, path: "/new-appointment" },
     {
       text: "Nouvelle réservation",
-      icon: <AddCircleIcon />,
+      icon: <AddShoppingCartIcon />,
       path: "/Reservation",
     },
     { text: "Réglages", icon: <SettingsIcon />, path: "/settings" },

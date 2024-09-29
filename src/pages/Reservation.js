@@ -3,22 +3,11 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { db } from "../firebase";
 import { collection, getDocs, query } from "firebase/firestore";
-import {
-  TextField,
-  MenuItem,
-  Button,
-  Dialog,
-  Autocomplete as MUIAutocomplete,
-} from "@mui/material";
-import { PersonAdd as PersonAddIcon } from "@mui/icons-material";
 import { useSnackbar } from "notistack";
-import CustomerForm from "../components/CustomerForm";
-
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import frLocale from "date-fns/locale/fr";
-import LocationForm from "../components/LocationForm";
 import {
   Checkbox,
   IconButton,
@@ -28,17 +17,24 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-} from "@mui/material";
-import Paper from "@mui/material/Paper";
-import CancelIcon from "@mui/icons-material/Cancel";
-import {
+  TextField,
+  MenuItem,
+  Button,
+  Dialog,
+  Autocomplete as MUIAutocomplete,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
 } from "@mui/material";
+import Paper from "@mui/material/Paper";
+import CancelIcon from "@mui/icons-material/Cancel";
 import EditLocationIcon from "@mui/icons-material/EditLocation";
+import { PersonAdd as PersonAddIcon } from "@mui/icons-material";
 import AddFeeDialog from "../components/AddFeeDialog";
+import CustomerForm from "../components/CustomerForm";
+import LocationForm from "../components/LocationForm";
+import AddDiscountDialog from "../components/AddDiscountDialog";
 
 function Reservation() {
   const { currentUser } = useAuth();
@@ -52,6 +48,8 @@ function Reservation() {
   const [fees, setFees] = useState([]); // Stocker les frais supplémentaires
   const [totalPrice, setTotalPrice] = useState(0); // Prix total (prestation + frais)
   const [servicePrice, setServicePrice] = useState(0); // Stocker le prix de la prestation
+  const [discounts, setDiscounts] = useState([]); // Stocker les remises
+
   const [openCustomerForm, setOpenCustomerForm] = useState(false);
   const [openLocationModal, setOpenLocationModal] = useState(false);
   const [locations, setLocations] = useState([]);
@@ -109,8 +107,21 @@ function Reservation() {
   // Calculer le prix total dès qu'il y a un changement dans les frais ou la prestation sélectionnée
   useEffect(() => {
     const totalFees = fees.reduce((acc, fee) => acc + fee.feeAmount, 0);
-    setTotalPrice(parseFloat(servicePrice) + parseFloat(totalFees));
-  }, [servicePrice, fees]);
+
+    const totalDiscounts = discounts.reduce((acc, discount) => {
+      if (discount.isPercentage) {
+        return acc + (servicePrice * discount.discountAmount) / 100;
+      } else {
+        return acc + discount.discountAmount;
+      }
+    }, 0);
+
+    setTotalPrice(
+      parseFloat(servicePrice) +
+        parseFloat(totalFees) -
+        parseFloat(totalDiscounts)
+    );
+  }, [servicePrice, fees, discounts]);
 
   const handleServiceChange = (event) => {
     const selectedServiceId = event.target.value;
@@ -121,10 +132,6 @@ function Reservation() {
       (item) => item.id === selectedServiceId
     );
     setServicePrice(selectedService ? selectedService.price : 0);
-  };
-
-  const handleAddFee = (newFee) => {
-    setFees((prevFees) => [...prevFees, newFee]);
   };
 
   const handleClientChange = (event, newValue) => {
@@ -170,10 +177,23 @@ function Reservation() {
     );
   };
 
-  const removeFeeByIndex = (indexToRemove) => {
-    setFees((prevFees) =>
-      prevFees.filter((_, index) => index !== indexToRemove)
-    );
+  const handleAddDiscount = (newDiscount) => {
+    setDiscounts((prevDiscounts) => [...prevDiscounts, newDiscount]);
+  };
+  const handleAddFee = (newFee) => {
+    setFees((prevFees) => [...prevFees, newFee]);
+  };
+
+  const removeByIndex = (indexToRemove, type) => {
+    if (type === "fee") {
+      setFees((prevFees) =>
+        prevFees.filter((_, index) => index !== indexToRemove)
+      );
+    } else if (type === "discount") {
+      setDiscounts((prevDiscounts) =>
+        prevDiscounts.filter((_, index) => index !== indexToRemove)
+      );
+    }
   };
 
   return (
@@ -384,7 +404,7 @@ function Reservation() {
                       type="button"
                       color="secondary"
                       size="small"
-                      onClick={() => removeFeeByIndex(index)}
+                      onClick={() => removeByIndex(index, "fee")}
                     >
                       <CancelIcon />
                     </IconButton>
@@ -395,11 +415,61 @@ function Reservation() {
           </Table>
         </TableContainer>
 
+        {/* Bouton pour ajouter une remise */}
+        <AddDiscountDialog onAddDiscount={handleAddDiscount} />
+
+        {/* Liste des remises */}
+        {discounts.length > 0 && (
+          <TableContainer component={Paper}>
+            <Table aria-label="remises">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Nom de la réduction</TableCell>
+                  <TableCell align="right">Montant</TableCell>
+                  <TableCell align="center">Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {discounts.map((discount, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{discount.discountName}</TableCell>
+                    <TableCell align="right">
+                      {discount.discountAmount}{" "}
+                      {discount.isPercentage ? "%" : "€"}
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        type="button"
+                        color="secondary"
+                        size="small"
+                        onClick={() => removeByIndex(index, "discount")}
+                      >
+                        <CancelIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+
         {/* Affichage du prix total */}
         <h3>Prix de la prestation : {servicePrice} €</h3>
         <h3>
           Frais supplémentaires :{" "}
           {fees.reduce((acc, fee) => acc + fee.feeAmount, 0)} €
+        </h3>
+        <h3>
+          Montant total des remises :
+          {discounts.reduce((acc, discount) => {
+            if (discount.isPercentage) {
+              return acc + (servicePrice * discount.discountAmount) / 100;
+            } else {
+              return acc + discount.discountAmount;
+            }
+          }, 0)}{" "}
+          €
         </h3>
         <h2>Prix total : {totalPrice} €</h2>
       </fieldset>
