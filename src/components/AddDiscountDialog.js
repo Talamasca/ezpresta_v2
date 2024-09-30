@@ -10,6 +10,7 @@ import {
   FormControlLabel,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
+import EuroIcon from "@mui/icons-material/Euro";
 
 export default function AddDiscountDialog({ onAddDiscount }) {
   //const classes = useStyles();
@@ -48,6 +49,7 @@ export default function AddDiscountDialog({ onAddDiscount }) {
         variant="outlined"
         color="primary"
         onClick={handleOpen}
+        startIcon={<EuroIcon />}
         size="small"
       >
         Ajouter une remise

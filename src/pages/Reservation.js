@@ -35,6 +35,8 @@ import AddFeeDialog from "../components/AddFeeDialog";
 import CustomerForm from "../components/CustomerForm";
 import LocationForm from "../components/LocationForm";
 import AddDiscountDialog from "../components/AddDiscountDialog";
+import { Box, Card, Grid, CardContent, Typography } from "@mui/material";
+//import Grid from "@mui/material/Unstable_Grid2";
 
 function Reservation() {
   const { currentUser } = useAuth();
@@ -198,281 +200,353 @@ function Reservation() {
 
   return (
     <div>
-      <TextField
-        select
-        label="Type de prestation"
-        value={selectedService}
-        onChange={handleServiceChange}
-        fullWidth
-      >
-        {catalogItems.map((item) => (
-          <MenuItem key={item.id} value={item.id}>
-            {item.type} : {item.name} - {item.price}€
-          </MenuItem>
-        ))}
-      </TextField>
-      <MUIAutocomplete
-        options={clients}
-        getOptionLabel={(option) =>
-          option ? `${option.firstname} ${option.lastname}` : ""
-        }
-        style={{ width: 300 }}
-        onChange={handleClientChange}
-        renderInput={(params) => (
-          <TextField {...params} label="Client" variant="outlined" />
-        )}
-        value={selectedClient}
-        id="client"
-        name="client"
-      />
+      <Box sx={{ p: 2 }}>
+        <Grid container spacing={5}>
+          <Grid item xs={12} sm={12} md={6}>
+            <Card>
+              <CardContent sx={{ p: 2 }}>
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 500, fontSize: "1.2rem", mb: 2 }}
+                >
+                  Nouvelle Prestation
+                </Typography>
 
-      <Button
-        variant="outlined"
-        color="primary"
-        startIcon={<PersonAddIcon />}
-        onClick={toggleDialog}
-        size="small"
-      >
-        Nouveau client
-      </Button>
+                <TextField
+                  select
+                  label="Type de prestation"
+                  value={selectedService}
+                  onChange={handleServiceChange}
+                  fullWidth
+                >
+                  {catalogItems.map((item) => (
+                    <MenuItem key={item.id} value={item.id}>
+                      {item.type} : {item.name} - {item.price}€
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <div style={{ marginBottom: "1rem", marginTop: "1rem" }}>
+                  <MUIAutocomplete
+                    options={clients}
+                    getOptionLabel={(option) =>
+                      option ? `${option.firstname} ${option.lastname}` : ""
+                    }
+                    style={{ width: 300 }}
+                    onChange={handleClientChange}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Client"
+                        variant="outlined"
+                      />
+                    )}
+                    value={selectedClient}
+                    id="client"
+                    name="client"
+                  />
+                </div>
+                <div style={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<PersonAddIcon />}
+                    onClick={toggleDialog}
+                    size="small"
+                  >
+                    Nouveau client
+                  </Button>{" "}
+                </div>
 
-      <Dialog open={openDialog} onClose={toggleDialog} maxWidth="md" fullWidth>
-        <CustomerForm
-          open={openDialog}
-          handleClose={toggleDialog}
-          onSave={handleCustomerSave}
-        />
-      </Dialog>
+                <Dialog
+                  open={openDialog}
+                  onClose={toggleDialog}
+                  maxWidth="md"
+                  fullWidth
+                >
+                  <CustomerForm
+                    open={openDialog}
+                    handleClose={toggleDialog}
+                    onSave={handleCustomerSave}
+                  />
+                </Dialog>
 
-      <LocalizationProvider dateAdapter={AdapterDateFns} locale={frLocale}>
-        <DatePicker
-          label="Date de la prestation"
-          value={selectedDate}
-          onChange={(newValue) => {
-            setSelectedDate(newValue);
-          }}
-          renderInput={(params) => (
-            <TextField {...params} fullWidth margin="normal" />
-          )}
-        />
-      </LocalizationProvider>
+                <LocalizationProvider
+                  dateAdapter={AdapterDateFns}
+                  locale={frLocale}
+                >
+                  <DatePicker
+                    label="Date de la prestation"
+                    value={selectedDate}
+                    onChange={(newValue) => {
+                      setSelectedDate(newValue);
+                    }}
+                    renderInput={(params) => (
+                      <TextField {...params} fullWidth margin="normal" />
+                    )}
+                  />
+                </LocalizationProvider>
+                <div style={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={handleOpenLocationModal}
+                    size="small"
+                    startIcon={<EditLocationIcon />}
+                  >
+                    Ajouter un lieu
+                  </Button>
+                </div>
 
-      <Button
-        variant="outlined"
-        color="primary"
-        onClick={handleOpenLocationModal}
-        size="small"
-        startIcon={<EditLocationIcon />}
-      >
-        Ajouter un lieu
-      </Button>
+                <Dialog
+                  open={openLocationModal}
+                  onClose={handleCloseLocationModal}
+                  maxWidth="sm"
+                  fullWidth
+                >
+                  <LocationForm
+                    selectedDate={selectedDate}
+                    onClose={handleCloseLocationModal}
+                    onSave={handleLocationSave}
+                  />
+                </Dialog>
 
-      <Dialog
-        open={openLocationModal}
-        onClose={handleCloseLocationModal}
-        maxWidth="sm"
-        fullWidth
-      >
-        <LocationForm
-          selectedDate={selectedDate}
-          onClose={handleCloseLocationModal}
-          onSave={handleLocationSave}
-        />
-      </Dialog>
+                {/* Affichage des lieux ajoutés */}
+                {locations.map((location, index) => (
+                  <div key={index}>
+                    <p>Date : {location.eventDate.toLocaleString()}</p>
+                    <p>Événement : {location.eventName}</p>
+                    <p>
+                      Lieu :{" "}
+                      {location.place
+                        ? location.place.description ||
+                          location.place.formatted_address
+                        : ""}
+                    </p>
+                  </div>
+                ))}
 
-      {/* Affichage des lieux ajoutés */}
-      {locations.map((location, index) => (
-        <div key={index}>
-          <p>Date : {location.eventDate.toLocaleString()}</p>
-          <p>Événement : {location.eventName}</p>
-          <p>
-            Lieu :{" "}
-            {location.place
-              ? location.place.description || location.place.formatted_address
-              : ""}
-          </p>
-        </div>
-      ))}
-
-      {locations.length >= 1 ? (
-        <TableContainer component={Paper}>
-          <Table aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell align="left">Lieu Principal</TableCell>
-                <TableCell align="center">Date</TableCell>
-                <TableCell align="center">Lieu</TableCell>
-                <TableCell align="center">Note</TableCell>
-                {/* <TableCell  align="center">
+                {locations.length >= 1 ? (
+                  <TableContainer component={Paper}>
+                    <Table aria-label="simple table">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell align="left">Lieu Principal</TableCell>
+                          <TableCell align="center">Date</TableCell>
+                          <TableCell align="center">Lieu</TableCell>
+                          <TableCell align="center">Note</TableCell>
+                          {/* <TableCell  align="center">
                                                         Distance
                                                     </TableCell> */}
-                <TableCell align="center">Action</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {locations.map((v, index) => {
-                return (
-                  <TableRow key={v.place_id + index.toString()}>
-                    <TableCell align="left">
-                      <Checkbox
-                        checked={v.isDefault}
-                        onChange={() => setLocationAsDefault(index)}
-                        inputProps={{ "aria-label": "primary checkbox" }}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      {new Date(v.eventDate).toLocaleString("fr-FR", {
-                        year: "numeric",
-                        month: "numeric",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "numeric",
-                      })}
-                    </TableCell>
-                    <TableCell align="center">
-                      {v.place
-                        ? v.place.description || v.place.formatted_address
-                        : ""}
-                    </TableCell>
-                    <TableCell align="center">{v.eventName}</TableCell>
-                    {/* <TableCell  align="center">
+                          <TableCell align="center">Action</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {locations.map((v, index) => {
+                          return (
+                            <TableRow key={v.place_id + index.toString()}>
+                              <TableCell align="left">
+                                <Checkbox
+                                  checked={v.isDefault}
+                                  onChange={() => setLocationAsDefault(index)}
+                                  inputProps={{
+                                    "aria-label": "primary checkbox",
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                {new Date(v.eventDate).toLocaleString("fr-FR", {
+                                  year: "numeric",
+                                  month: "numeric",
+                                  day: "numeric",
+                                  hour: "numeric",
+                                  minute: "numeric",
+                                })}
+                              </TableCell>
+                              <TableCell align="center">
+                                {v.place
+                                  ? v.place.description ||
+                                    v.place.formatted_address
+                                  : ""}
+                              </TableCell>
+                              <TableCell align="center">
+                                {v.eventName}
+                              </TableCell>
+                              {/* <TableCell  align="center">
                                                                 {v.distance || "Loading..."}
                                                             </TableCell> */}
-                    <TableCell align="center">
-                      <IconButton
-                        type="button"
-                        variant="contained"
-                        color="secondary"
-                        size="medium"
-                        //disabled={isSubmitting}
-                        onClick={() => {
-                          //_removeLocationById(index);
-                          //removeLocationByIndex(index);
-                          handleOpenConfirmDialog(index);
-                        }}
-                      >
-                        <CancelIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      ) : null}
+                              <TableCell align="center">
+                                <IconButton
+                                  type="button"
+                                  variant="contained"
+                                  color="secondary"
+                                  size="medium"
+                                  //disabled={isSubmitting}
+                                  onClick={() => {
+                                    //_removeLocationById(index);
+                                    //removeLocationByIndex(index);
+                                    handleOpenConfirmDialog(index);
+                                  }}
+                                >
+                                  <CancelIcon />
+                                </IconButton>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : null}
 
-      <Dialog open={openConfirmDialog} onClose={handleCloseConfirmDialog}>
-        <DialogTitle>Confirmer la suppression</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Êtes-vous sûr de vouloir supprimer ce lieu ?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseConfirmDialog} color="primary">
-            Annuler
-          </Button>
-          <Button onClick={handleConfirmRemoveLocation} color="secondary">
-            Supprimer
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <fieldset>
-        <legend>Options</legend>
-        {/* Bouton pour ajouter des frais supplémentaires */}
-        <AddFeeDialog onAddFee={handleAddFee} />
-
-        {/* Liste des frais supplémentaires */}
-        <TableContainer component={Paper}>
-          <Table aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell align="center">Titre</TableCell>
-                <TableCell align="center">Montant</TableCell>
-                <TableCell align="center">Action</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {fees.map((fee, index) => (
-                <TableRow key={index}>
-                  <TableCell>{fee.feeName}</TableCell>
-                  <TableCell align="right">{fee.feeAmount} €</TableCell>
-                  <TableCell align="center">
-                    <IconButton
-                      type="button"
+                <Dialog
+                  open={openConfirmDialog}
+                  onClose={handleCloseConfirmDialog}
+                >
+                  <DialogTitle>Confirmer la suppression</DialogTitle>
+                  <DialogContent>
+                    <DialogContentText>
+                      Êtes-vous sûr de vouloir supprimer ce lieu ?
+                    </DialogContentText>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={handleCloseConfirmDialog} color="primary">
+                      Annuler
+                    </Button>
+                    <Button
+                      onClick={handleConfirmRemoveLocation}
                       color="secondary"
-                      size="small"
-                      onClick={() => removeByIndex(index, "fee")}
                     >
-                      <CancelIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                      Supprimer
+                    </Button>
+                  </DialogActions>
+                </Dialog>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={12} md={6}>
+            <Card>
+              <CardContent sx={{ p: 2 }}>
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 500, fontSize: "1.2rem", mb: 2 }}
+                >
+                  Frais supplémentaires et Remises
+                </Typography>
+                {/* Bouton pour ajouter des frais supplémentaires */}
+                <div style={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
+                  <AddFeeDialog onAddFee={handleAddFee} />
+                </div>
+                {/* Liste des frais supplémentaires */}
+                <TableContainer component={Paper}>
+                  <Table aria-label="simple table" sx={{ borderRadius: "4px" }}>
+                    <TableHead>
+                      <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                        <TableCell sx={{ fontWeight: 500 }}>Titre</TableCell>
+                        <TableCell sx={{ fontWeight: 500 }} align="center">
+                          Montant
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 500 }} align="center">
+                          Action
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {fees.map((fee, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{fee.feeName}</TableCell>
+                          <TableCell align="right">{fee.feeAmount} €</TableCell>
+                          <TableCell align="center">
+                            <IconButton
+                              type="button"
+                              color="secondary"
+                              size="small"
+                              onClick={() => removeByIndex(index, "fee")}
+                            >
+                              <CancelIcon />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
 
-        {/* Bouton pour ajouter une remise */}
-        <AddDiscountDialog onAddDiscount={handleAddDiscount} />
+                {/* Bouton pour ajouter une remise */}
+                <div style={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
+                  <AddDiscountDialog onAddDiscount={handleAddDiscount} />
+                </div>
+                {/* Liste des remises */}
+                {discounts.length > 0 && (
+                  <TableContainer component={Paper}>
+                    <Table aria-label="remises">
+                      <TableHead>
+                        <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                          <TableCell sx={{ fontWeight: 500 }}>
+                            Nom de la réduction
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 500 }} align="right">
+                            Montant
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 500 }} align="center">
+                            Action
+                          </TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {discounts.map((discount, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{discount.discountName}</TableCell>
+                            <TableCell align="right">
+                              {discount.discountAmount}{" "}
+                              {discount.isPercentage ? "%" : "€"}
+                            </TableCell>
+                            <TableCell align="center">
+                              <IconButton
+                                type="button"
+                                color="secondary"
+                                size="small"
+                                onClick={() => removeByIndex(index, "discount")}
+                              >
+                                <CancelIcon />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
 
-        {/* Liste des remises */}
-        {discounts.length > 0 && (
-          <TableContainer component={Paper}>
-            <Table aria-label="remises">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Nom de la réduction</TableCell>
-                  <TableCell align="right">Montant</TableCell>
-                  <TableCell align="center">Action</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {discounts.map((discount, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{discount.discountName}</TableCell>
-                    <TableCell align="right">
-                      {discount.discountAmount}{" "}
-                      {discount.isPercentage ? "%" : "€"}
-                    </TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        type="button"
-                        color="secondary"
-                        size="small"
-                        onClick={() => removeByIndex(index, "discount")}
-                      >
-                        <CancelIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-
-        {/* Affichage du prix total */}
-        <h3>Prix de la prestation : {servicePrice} €</h3>
-        <h3>
-          Frais supplémentaires :{" "}
-          {fees.reduce((acc, fee) => acc + fee.feeAmount, 0)} €
-        </h3>
-        <h3>
-          Montant total des remises :
-          {discounts.reduce((acc, discount) => {
-            if (discount.isPercentage) {
-              return acc + (servicePrice * discount.discountAmount) / 100;
-            } else {
-              return acc + discount.discountAmount;
-            }
-          }, 0)}{" "}
-          €
-        </h3>
-        <h2>Prix total : {totalPrice} €</h2>
-      </fieldset>
+                {/* Affichage du prix total */}
+                <h3>Prix de la prestation : {servicePrice} €</h3>
+                <h3>
+                  Frais supplémentaires :{" "}
+                  {fees.reduce((acc, fee) => acc + fee.feeAmount, 0)} €
+                </h3>
+                <h3>
+                  Montant total des remises :
+                  {discounts.reduce((acc, discount) => {
+                    if (discount.isPercentage) {
+                      return (
+                        acc + (servicePrice * discount.discountAmount) / 100
+                      );
+                    } else {
+                      return acc + discount.discountAmount;
+                    }
+                  }, 0)}{" "}
+                  €
+                </h3>
+                <h2>Prix total : {totalPrice} €</h2>
+                <Box mt={2}>
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    Prix total : {totalPrice} €
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Box>
     </div>
   );
 }
