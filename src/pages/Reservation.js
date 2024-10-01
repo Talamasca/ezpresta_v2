@@ -329,8 +329,10 @@ function Reservation() {
                   <TableContainer component={Paper}>
                     <Table aria-label="simple table">
                       <TableHead>
-                        <TableRow>
-                          <TableCell align="left">Lieu Principal</TableCell>
+                        <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                          <TableCell align="left" sx={{ fontWeight: 500 }}>
+                            Lieu Principal
+                          </TableCell>
                           <TableCell align="center">Date</TableCell>
                           <TableCell align="center">Lieu</TableCell>
                           <TableCell align="center">Note</TableCell>
@@ -437,40 +439,46 @@ function Reservation() {
                   <AddFeeDialog onAddFee={handleAddFee} />
                 </div>
                 {/* Liste des frais supplémentaires */}
-                <TableContainer component={Paper}>
-                  <Table aria-label="simple table" sx={{ borderRadius: "4px" }}>
-                    <TableHead>
-                      <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                        <TableCell sx={{ fontWeight: 500 }}>Titre</TableCell>
-                        <TableCell sx={{ fontWeight: 500 }} align="center">
-                          Montant
-                        </TableCell>
-                        <TableCell sx={{ fontWeight: 500 }} align="center">
-                          Action
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {fees.map((fee, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{fee.feeName}</TableCell>
-                          <TableCell align="right">{fee.feeAmount} €</TableCell>
-                          <TableCell align="center">
-                            <IconButton
-                              type="button"
-                              color="secondary"
-                              size="small"
-                              onClick={() => removeByIndex(index, "fee")}
-                            >
-                              <CancelIcon />
-                            </IconButton>
+                {fees.length > 0 && (
+                  <TableContainer component={Paper}>
+                    <Table
+                      aria-label="simple table"
+                      sx={{ borderRadius: "4px" }}
+                    >
+                      <TableHead>
+                        <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                          <TableCell sx={{ fontWeight: 500 }}>Titre</TableCell>
+                          <TableCell sx={{ fontWeight: 500 }} align="center">
+                            Montant
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 500 }} align="center">
+                            Action
                           </TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-
+                      </TableHead>
+                      <TableBody>
+                        {fees.map((fee, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{fee.feeName}</TableCell>
+                            <TableCell align="right">
+                              {fee.feeAmount} €
+                            </TableCell>
+                            <TableCell align="center">
+                              <IconButton
+                                type="button"
+                                color="secondary"
+                                size="small"
+                                onClick={() => removeByIndex(index, "fee")}
+                              >
+                                <CancelIcon />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
                 {/* Bouton pour ajouter une remise */}
                 <div style={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
                   <AddDiscountDialog onAddDiscount={handleAddDiscount} />
@@ -516,32 +524,71 @@ function Reservation() {
                     </Table>
                   </TableContainer>
                 )}
-
+              </CardContent>
+            </Card>
+            <Card sx={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
+              <CardContent sx={{ p: 2 }}>
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 500, fontSize: "1.2rem", mb: 2 }}
+                >
+                  Prix final
+                </Typography>
                 {/* Affichage du prix total */}
-                <h3>Prix de la prestation : {servicePrice} €</h3>
-                <h3>
-                  Frais supplémentaires :{" "}
-                  {fees.reduce((acc, fee) => acc + fee.feeAmount, 0)} €
-                </h3>
-                <h3>
-                  Montant total des remises :
-                  {discounts.reduce((acc, discount) => {
-                    if (discount.isPercentage) {
-                      return (
-                        acc + (servicePrice * discount.discountAmount) / 100
-                      );
-                    } else {
-                      return acc + discount.discountAmount;
-                    }
-                  }, 0)}{" "}
-                  €
-                </h3>
-                <h2>Prix total : {totalPrice} €</h2>
-                <Box mt={2}>
-                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    Prix total : {totalPrice} €
-                  </Typography>
-                </Box>
+                <TableContainer component={Paper}>
+                  <Table aria-label="remises">
+                    <TableHead>
+                      <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                        <TableCell sx={{ fontWeight: 500 }}>
+                          Désignation
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 500 }} align="right">
+                          Montant
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>Prix de la prestation</TableCell>
+                        <TableCell align="right">{servicePrice} €</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>Frais supplémentaires</TableCell>
+                        <TableCell align="right">
+                          {fees.reduce((acc, fee) => acc + fee.feeAmount, 0)} €
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>Montant total des remises</TableCell>
+                        <TableCell align="right">
+                          {discounts.reduce((acc, discount) => {
+                            if (discount.isPercentage) {
+                              return (
+                                acc +
+                                (servicePrice * discount.discountAmount) / 100
+                              );
+                            } else {
+                              return acc + discount.discountAmount;
+                            }
+                          }, 0)}{" "}
+                          €
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>
+                          <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                            Prix total
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                            {totalPrice} €
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               </CardContent>
             </Card>
           </Grid>
