@@ -310,21 +310,6 @@ function Reservation() {
                   />
                 </Dialog>
 
-                {/* Affichage des lieux ajoutés */}
-                {locations.map((location, index) => (
-                  <div key={index}>
-                    <p>Date : {location.eventDate.toLocaleString()}</p>
-                    <p>Événement : {location.eventName}</p>
-                    <p>
-                      Lieu :{" "}
-                      {location.place
-                        ? location.place.description ||
-                          location.place.formatted_address
-                        : ""}
-                    </p>
-                  </div>
-                ))}
-
                 {locations.length >= 1 ? (
                   <TableContainer component={Paper}>
                     <Table aria-label="simple table">

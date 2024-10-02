@@ -1,5 +1,5 @@
 // components/LocationForm.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   TextField,
   Button,
@@ -13,44 +13,98 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import frLocale from "date-fns/locale/fr";
-import useLoadScript from "../hooks/useLoadScript";
+import throttle from "lodash/throttle";
+import parse from "autosuggest-highlight/parse";
+import { Grid, Typography } from "@mui/material";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+
+function loadScript(src, position, id) {
+  if (!position) {
+    return;
+  }
+
+  const script = document.createElement("script");
+  script.setAttribute("async", "");
+  script.setAttribute("id", id);
+  script.src = src;
+  position.appendChild(script);
+}
+
+let autocompleteService = { current: null };
 
 function LocationForm({ selectedDate, onClose, onSave }) {
   const [eventDate, setEventDate] = useState(selectedDate || new Date());
   const [eventName, setEventName] = useState("");
   const [place, setPlace] = useState(null);
+  const [getPlaceId, setPlaceId] = React.useState({});
+
   const [inputValue, setInputValue] = useState("");
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const loaded = useRef(false);
 
-  const scriptLoaded = useLoadScript(
-    `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&libraries=places&language=fr`
+  // Optimized load script logic for Google Maps API
+  useEffect(() => {
+    if (typeof window !== "undefined" && !loaded.current) {
+      if (!document.querySelector("#google-maps")) {
+        loadScript(
+          `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&libraries=places`,
+          document.querySelector("head"),
+          "google-maps"
+        );
+      }
+      loaded.current = true;
+    }
+  }, []);
+
+  // Throttling API requests for better performance
+  const fetch = useMemo(
+    () =>
+      throttle((input, callback) => {
+        autocompleteService.current.getPlacePredictions(input, callback);
+      }, 200),
+    []
   );
 
-  const fetchPlaces = (request, callback) => {
-    const service = new window.google.maps.places.AutocompleteService();
-    service.getPlacePredictions(request, callback);
-  };
+  useEffect(() => {
+    let active = true;
 
-  const handleInputChange = (event, newInputValue) => {
-    setInputValue(newInputValue);
+    if (!autocompleteService.current && window.google) {
+      autocompleteService.current =
+        new window.google.maps.places.AutocompleteService();
+    }
 
-    if (newInputValue && scriptLoaded) {
-      setLoading(true);
-      fetchPlaces(
-        {
-          input: newInputValue,
-          types: ["geocode"],
-          componentRestrictions: { country: "fr" },
-        },
-        (results) => {
+    if (!autocompleteService.current) {
+      return undefined;
+    }
+
+    if (inputValue === "") {
+      setOptions([]);
+      return undefined;
+    }
+
+    setLoading(true);
+    fetch(
+      {
+        input: inputValue,
+        //types: ["geocode"],
+        //componentRestrictions: { country: "fr" },
+      },
+      (results) => {
+        if (active) {
           setOptions(results || []);
           setLoading(false);
         }
-      );
-    } else {
-      setOptions([]);
-    }
+      }
+    );
+
+    return () => {
+      active = false;
+    };
+  }, [inputValue, fetch]);
+
+  const handleInputChange = (event, newInputValue) => {
+    setInputValue(newInputValue);
   };
 
   const handleSubmit = (e) => {
@@ -71,9 +125,7 @@ function LocationForm({ selectedDate, onClose, onSave }) {
             <DateTimePicker
               label="Date et heure"
               value={eventDate}
-              onChange={(newValue) => {
-                setEventDate(newValue);
-              }}
+              onChange={(newValue) => setEventDate(newValue)}
               renderInput={(params) => (
                 <TextField {...params} fullWidth margin="normal" />
               )}
@@ -97,14 +149,56 @@ function LocationForm({ selectedDate, onClose, onSave }) {
             includeInputInList
             filterSelectedOptions
             value={place}
-            onChange={(event, newValue) => {
-              setPlace(newValue);
+            onChange={(event, value) => {
+              if (value) {
+                setPlaceId(value);
+                setPlace(value);
+              }
             }}
             onInputChange={handleInputChange}
+            renderOption={(option) => {
+              const matches =
+                option.structured_formatting.main_text_matched_substrings || [];
+              const parts = parse(
+                option.structured_formatting.main_text,
+                matches.map((match) => [
+                  match.offset,
+                  match.offset + match.length,
+                ])
+              );
+
+              return (
+                <Grid container alignItems="center">
+                  <Grid item>
+                    <LocationOnIcon />
+                  </Grid>
+                  <Grid item xs>
+                    {parts.length > 0 ? (
+                      parts.map((part, index) => (
+                        <span
+                          key={index}
+                          style={{
+                            fontWeight: part.highlight ? 700 : 400,
+                          }}
+                        >
+                          {part.text}
+                        </span>
+                      ))
+                    ) : (
+                      <span>{option.structured_formatting.main_text}</span>
+                    )}
+                    <Typography variant="body2" color="textSecondary">
+                      {option.structured_formatting.secondary_text || ""}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              );
+            }}
             renderInput={(params) => (
               <TextField
                 {...params}
                 label="Lieu"
+                name="Location"
                 variant="outlined"
                 fullWidth
                 margin="normal"
