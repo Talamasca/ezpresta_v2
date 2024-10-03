@@ -1,5 +1,4 @@
-// src/components/Sidebar.js
-import React from "react";
+import React, { useState } from "react";
 import {
   Drawer,
   List,
@@ -9,11 +8,12 @@ import {
   Box,
   Toolbar,
   Divider,
+  Collapse,
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import Avatar from "@mui/material/Avatar";
-import "../App.css";
+import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -21,9 +21,17 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import StoreIcon from "@mui/icons-material/Store";
 import PeopleIcon from "@mui/icons-material/People";
 import EventIcon from "@mui/icons-material/Event";
+import PersonIcon from "@mui/icons-material/Person";
+import ContactPhoneIcon from "@mui/icons-material/ContactPhone";
+import WorkIcon from "@mui/icons-material/Work";
 
 const Sidebar = () => {
   const { currentUser } = useAuth();
+  const [openSettings, setOpenSettings] = useState(false); // Pour gérer le sous-menu
+
+  const handleSettingsClick = () => {
+    setOpenSettings(!openSettings); // Ouvre ou ferme le sous-menu Réglages
+  };
 
   const menuItems = [
     { text: "Tableau de bord", icon: <DashboardIcon />, path: "/dashboard" },
@@ -36,7 +44,6 @@ const Sidebar = () => {
       icon: <AddShoppingCartIcon />,
       path: "/Reservation",
     },
-    { text: "Réglages", icon: <SettingsIcon />, path: "/settings" },
   ];
 
   return (
@@ -49,7 +56,7 @@ const Sidebar = () => {
         [`& .MuiDrawer-paper`]: {
           width: 240,
           boxSizing: "border-box",
-          top: "64px", // Adjust based on header height
+          top: "64px", // Ajuste selon la hauteur de l'en-tête
         },
       }}
     >
@@ -80,6 +87,50 @@ const Sidebar = () => {
             <ListItemText primary={item.text} />
           </ListItem>
         ))}
+
+        {/* Menu Réglages avec sous-menu */}
+        <ListItem button onClick={handleSettingsClick}>
+          <ListItemIcon>
+            <SettingsIcon />
+          </ListItemIcon>
+          <ListItemText primary="Réglages" />
+          {openSettings ? <ExpandLess /> : <ExpandMore />}
+        </ListItem>
+
+        <Collapse in={openSettings} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            <ListItem button component={Link} to="/settings" sx={{ pl: 4 }}>
+              <ListItemIcon>
+                <PersonIcon />
+              </ListItemIcon>
+              <ListItemText primary="Parametres" />
+            </ListItem>
+
+            <ListItem
+              button
+              component={Link}
+              to="/settings/contact-sources"
+              sx={{ pl: 4 }}
+            >
+              <ListItemIcon>
+                <ContactPhoneIcon />
+              </ListItemIcon>
+              <ListItemText primary="Gérer les provenances de contact" />
+            </ListItem>
+
+            <ListItem
+              button
+              component={Link}
+              to="/settings/workflow"
+              sx={{ pl: 4 }}
+            >
+              <ListItemIcon>
+                <WorkIcon />
+              </ListItemIcon>
+              <ListItemText primary="Workflow" />
+            </ListItem>
+          </List>
+        </Collapse>
       </List>
     </Drawer>
   );

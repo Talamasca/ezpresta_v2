@@ -17,6 +17,7 @@ import throttle from "lodash/throttle";
 import parse from "autosuggest-highlight/parse";
 import { Grid, Typography } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
+import Box from "@mui/material/Box";
 
 function loadScript(src, position, id) {
   if (!position) {
@@ -156,9 +157,11 @@ function LocationForm({ selectedDate, onClose, onSave }) {
               }
             }}
             onInputChange={handleInputChange}
-            renderOption={(option) => {
+            renderOption={(props, option) => {
+              const { key, ...optionProps } = props;
               const matches =
                 option.structured_formatting.main_text_matched_substrings || [];
+
               const parts = parse(
                 option.structured_formatting.main_text,
                 matches.map((match) => [
@@ -166,32 +169,39 @@ function LocationForm({ selectedDate, onClose, onSave }) {
                   match.offset + match.length,
                 ])
               );
-
               return (
-                <Grid container alignItems="center">
-                  <Grid item>
-                    <LocationOnIcon />
-                  </Grid>
-                  <Grid item xs>
-                    {parts.length > 0 ? (
-                      parts.map((part, index) => (
-                        <span
+                <li key={key} {...optionProps}>
+                  <Grid container sx={{ alignItems: "center" }}>
+                    <Grid item sx={{ display: "flex", width: 44 }}>
+                      <LocationOnIcon sx={{ color: "text.secondary" }} />
+                    </Grid>
+                    <Grid
+                      item
+                      sx={{
+                        width: "calc(100% - 44px)",
+                        wordWrap: "break-word",
+                      }}
+                    >
+                      {parts.map((part, index) => (
+                        <Box
                           key={index}
-                          style={{
-                            fontWeight: part.highlight ? 700 : 400,
+                          component="span"
+                          sx={{
+                            fontWeight: part.highlight ? "bold" : "regular",
                           }}
                         >
                           {part.text}
-                        </span>
-                      ))
-                    ) : (
-                      <span>{option.structured_formatting.main_text}</span>
-                    )}
-                    <Typography variant="body2" color="textSecondary">
-                      {option.structured_formatting.secondary_text || ""}
-                    </Typography>
+                        </Box>
+                      ))}
+                      <Typography
+                        variant="body2"
+                        sx={{ color: "text.secondary" }}
+                      >
+                        {option.structured_formatting.secondary_text}
+                      </Typography>
+                    </Grid>
                   </Grid>
-                </Grid>
+                </li>
               );
             }}
             renderInput={(params) => (
