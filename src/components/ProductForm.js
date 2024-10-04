@@ -42,6 +42,7 @@ const ProductForm = ({ open, handleClose, productId, userId, onSave }) => {
     payableOnline: false,
     bookableOnline: false,
     payableInInstallments: false,
+    payableInInstallments2x: false,
   });
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -69,6 +70,7 @@ const ProductForm = ({ open, handleClose, productId, userId, onSave }) => {
           payableOnline: false,
           bookableOnline: false,
           payableInInstallments: false,
+          payableInInstallments2x: false,
         });
       }
     };
@@ -265,6 +267,17 @@ const ProductForm = ({ open, handleClose, productId, userId, onSave }) => {
                   />
                 }
                 label="Payable en 3x fois"
+              />
+
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={formData.payableInInstallments2x}
+                    onChange={handleChange}
+                    name="payableInInstallments2x"
+                  />
+                }
+                label="Payable en 2x fois"
               />
             </Grid>
           </Grid>

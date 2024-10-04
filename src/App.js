@@ -20,6 +20,9 @@ import Customers from "./pages/Customers";
 import Catalogue from "./pages/Catalogue";
 import Settings from "./pages/Settings";
 import Reservation from "./pages/Reservation";
+import Workflow from "./pages/Workflow";
+import WorkflowForm from "./components/WorkflowForm";
+import CustomerSource from "./pages/CustomerSource";
 
 const App = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -52,6 +55,15 @@ const App = () => {
                       <Route path="/catalogue" element={<Catalogue />} />
                       <Route path="/reservation" element={<Reservation />} />
                       <Route path="/settings" element={<Settings />} />
+                      <Route path="/workflow" element={<Workflow />} />
+                      <Route
+                        path="/edit-workflow/:workflowId"
+                        element={<WorkflowForm />}
+                      />
+                      <Route
+                        path="/customer-source"
+                        element={<CustomerSource />}
+                      />
                       <Route
                         path="*"
                         element={<Navigate to="/dashboard" replace />}

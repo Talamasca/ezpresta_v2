@@ -58,6 +58,11 @@ function Reservation() {
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [locationToRemove, setLocationToRemove] = useState(null);
 
+  // Dans le state, on ajoute un état pour les workflows
+  const [workflows, setWorkflows] = useState([]);
+  const [selectedWorkflow, setSelectedWorkflow] = useState(null);
+  const [workflowTasks, setWorkflowTasks] = useState([]); // Les tâches du workflow sélectionné
+
   const handleOpenConfirmDialog = (index) => {
     setLocationToRemove(index);
     setOpenConfirmDialog(true);
@@ -77,20 +82,33 @@ function Reservation() {
     const fetchCatalogAndClients = async () => {
       if (currentUser) {
         const catalogRef = collection(db, `users/${currentUser.uid}/catalog`);
+        const workflowsRef = collection(
+          db,
+          `users/${currentUser.uid}/workflows`
+        );
         const customersRef = collection(
           db,
           `users/${currentUser.uid}/customers`
         );
         try {
-          const [catalogSnapshot, customerSnapshot] = await Promise.all([
-            getDocs(query(catalogRef)),
-            getDocs(query(customersRef)),
-          ]);
+          const [catalogSnapshot, customerSnapshot, workflowSnapshot] =
+            await Promise.all([
+              getDocs(query(catalogRef)),
+              getDocs(query(customersRef)),
+              getDocs(workflowsRef),
+            ]);
           setCatalogItems(
             catalogSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
           );
           setClients(
             customerSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+          );
+          setWorkflows(
+            workflowSnapshot.docs.map((doc) => ({
+              id: doc.id,
+              name: doc.data().name,
+              tasks: doc.data().tasks || [], // S'assurer que les tâches sont récupérées
+            }))
           );
         } catch (error) {
           enqueueSnackbar(
@@ -225,6 +243,7 @@ function Reservation() {
                     </MenuItem>
                   ))}
                 </TextField>
+
                 <div style={{ marginBottom: "1rem", marginTop: "1rem" }}>
                   <MUIAutocomplete
                     options={clients}
@@ -407,6 +426,72 @@ function Reservation() {
                     </Button>
                   </DialogActions>
                 </Dialog>
+              </CardContent>
+            </Card>
+            <Card sx={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
+              <CardContent sx={{ p: 2 }}>
+                <div style={{ marginBottom: "1rem", marginTop: "1rem" }}>
+                  <TextField
+                    select
+                    label="Sélectionner un workflow"
+                    value={selectedWorkflow ? selectedWorkflow.id : ""}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      const workflow = workflows.find(
+                        (w) => w.id === selectedId
+                      );
+                      setSelectedWorkflow(workflow);
+                      setWorkflowTasks(workflow ? workflow.tasks : []); // Charger les tâches du workflow sélectionné
+                    }}
+                    fullWidth
+                  >
+                    {workflows.map((workflow) => (
+                      <MenuItem key={workflow.id} value={workflow.id}>
+                        {workflow.name} - {workflow.tasks.length} tâche(s)
+                      </MenuItem>
+                    ))}
+                  </TextField>
+
+                  {workflowTasks.length > 0 && (
+                    <div style={{ marginTop: "20px" }}>
+                      <Typography
+                        variant="h6"
+                        sx={{ fontWeight: 500, fontSize: "1rem", mb: 2 }}
+                      >
+                        {" "}
+                        Liste des tâches pour ce workflow
+                      </Typography>
+                      <TableContainer component={Paper}>
+                        <Table>
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Tâche</TableCell>
+                              <TableCell align="center">Terminé</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {workflowTasks.map((task, index) => (
+                              <TableRow key={index}>
+                                <TableCell>{task.label}</TableCell>
+                                <TableCell align="center">
+                                  <Checkbox
+                                    checked={task.done || false}
+                                    onChange={(e) => {
+                                      const updatedTasks = [...workflowTasks];
+                                      updatedTasks[index].done =
+                                        e.target.checked;
+                                      setWorkflowTasks(updatedTasks); // Mettre à jour l'état local
+                                    }}
+                                  />
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </Grid>

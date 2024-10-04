@@ -233,13 +233,13 @@ const Settings = () => {
   };
 
   return (
-    <Container component="main" maxWidth="md">
+    <Box sx={{ p: 2 }}>
       <Typography variant="h4" gutterBottom>
         Réglages
       </Typography>
-      <Grid container spacing={3}>
+      <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+          <Paper elevation={3} sx={{ p: 4 }}>
             <Typography variant="h6" gutterBottom>
               Changer vos informations personnelles
             </Typography>
@@ -311,7 +311,7 @@ const Settings = () => {
           </Paper>
         </Grid>
         <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+          <Paper elevation={3} sx={{ p: 4 }}>
             <Typography variant="h6" gutterBottom>
               Changer les informations de votre entreprise
             </Typography>
@@ -499,58 +499,8 @@ const Settings = () => {
             </Box>
           </Paper>
         </Grid>
-        <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Gérer les provenances de contact
-            </Typography>
-            <Box sx={{ mt: 2 }}>
-              {sources.map((source) => (
-                <Box
-                  key={source.id}
-                  sx={{ display: "flex", alignItems: "center", mb: 2 }}
-                >
-                  <TextField
-                    fullWidth
-                    variant="outlined"
-                    value={source.name}
-                    onChange={(e) =>
-                      handleUpdateSource(source.id, e.target.value)
-                    }
-                  />
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={() => handleDeleteSource(source.id)}
-                    sx={{ ml: 2 }}
-                  >
-                    Supprimer
-                  </Button>
-                </Box>
-              ))}
-
-              <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  label="Ajouter une provenance"
-                  value={newSource}
-                  onChange={(e) => setNewSource(e.target.value)}
-                />
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleAddSource}
-                  sx={{ ml: 2 }}
-                >
-                  Ajouter
-                </Button>
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
       </Grid>
-    </Container>
+    </Box>
   );
 };
 export default Settings;

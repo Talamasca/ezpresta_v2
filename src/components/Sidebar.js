@@ -109,7 +109,7 @@ const Sidebar = () => {
             <ListItem
               button
               component={Link}
-              to="/settings/contact-sources"
+              to="/customer-source"
               sx={{ pl: 4 }}
             >
               <ListItemIcon>
@@ -118,12 +118,7 @@ const Sidebar = () => {
               <ListItemText primary="Gérer les provenances de contact" />
             </ListItem>
 
-            <ListItem
-              button
-              component={Link}
-              to="/settings/workflow"
-              sx={{ pl: 4 }}
-            >
+            <ListItem button component={Link} to="/workflow" sx={{ pl: 4 }}>
               <ListItemIcon>
                 <WorkIcon />
               </ListItemIcon>
