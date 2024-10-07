@@ -8,7 +8,6 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import frLocale from "date-fns/locale/fr";
-import { useTheme } from "@mui/material/styles";
 
 import {
   Checkbox,
@@ -38,10 +37,8 @@ import CustomerForm from "../components/CustomerForm";
 import LocationForm from "../components/LocationForm";
 import AddDiscountDialog from "../components/AddDiscountDialog";
 import { Box, Card, Grid, CardContent, Typography } from "@mui/material";
-//import Grid from "@mui/material/Unstable_Grid2";
 
 function Reservation() {
-  const theme = useTheme();
   const { currentUser } = useAuth();
   const [catalogItems, setCatalogItems] = useState([]);
   const [selectedService, setSelectedService] = useState("");
