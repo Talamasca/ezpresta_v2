@@ -8,6 +8,8 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import frLocale from "date-fns/locale/fr";
+import { useTheme } from "@mui/material/styles";
+
 import {
   Checkbox,
   IconButton,
@@ -39,6 +41,7 @@ import { Box, Card, Grid, CardContent, Typography } from "@mui/material";
 //import Grid from "@mui/material/Unstable_Grid2";
 
 function Reservation() {
+  const theme = useTheme();
   const { currentUser } = useAuth();
   const [catalogItems, setCatalogItems] = useState([]);
   const [selectedService, setSelectedService] = useState("");
@@ -216,6 +219,50 @@ function Reservation() {
     }
   };
 
+  const [paymentPlan, setPaymentPlan] = useState("Non"); // Plan de paiement: Non, 2x, 3x
+  const [paymentPercentages, setPaymentPercentages] = useState([100]);
+  const [paymentValues, setPaymentValues] = useState([totalPrice]); // Montants en euros basés sur les pourcentages
+  const [paymentError, setPaymentError] = useState(null);
+
+  // Fonction pour recalculer les valeurs en euros
+  const calculatePaymentValues = (total, percentages) => {
+    return percentages.map((percentage) => (total * percentage) / 100);
+  };
+
+  // Mise à jour des pourcentages et calcul des montants en euros lorsque le plan de paiement change
+  const handlePaymentPlanChange = (e) => {
+    const selectedPlan = e.target.value;
+    setPaymentPlan(selectedPlan);
+
+    let updatedPercentages;
+    if (selectedPlan === "2x") {
+      updatedPercentages = [50, 50];
+    } else if (selectedPlan === "3x") {
+      updatedPercentages = [30, 50, 20];
+    } else {
+      updatedPercentages = [100]; // Paiement unique ou "Non"
+    }
+
+    // Mettre à jour les pourcentages
+    setPaymentPercentages(updatedPercentages);
+    // Calculer les valeurs basées sur ces pourcentages
+    setPaymentValues(calculatePaymentValues(totalPrice, updatedPercentages));
+  };
+
+  // Fonction pour recalculer et valider les pourcentages
+  const handleRecalculate = () => {
+    const totalPercentage = paymentPercentages.reduce(
+      (acc, curr) => acc + curr,
+      0
+    );
+    if (totalPercentage !== 100) {
+      setPaymentError("Le total des pourcentages doit être égal à 100%.");
+    } else {
+      setPaymentError(null);
+      setPaymentValues(calculatePaymentValues(totalPrice, paymentPercentages));
+    }
+  };
+
   return (
     <div>
       <Box sx={{ p: 2 }}>
@@ -333,7 +380,7 @@ function Reservation() {
                   <TableContainer component={Paper}>
                     <Table aria-label="simple table">
                       <TableHead>
-                        <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                        <TableRow>
                           <TableCell align="left" sx={{ fontWeight: 500 }}>
                             Lieu Principal
                           </TableCell>
@@ -516,7 +563,7 @@ function Reservation() {
                       sx={{ borderRadius: "4px" }}
                     >
                       <TableHead>
-                        <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                        <TableRow>
                           <TableCell sx={{ fontWeight: 500 }}>Titre</TableCell>
                           <TableCell sx={{ fontWeight: 500 }} align="center">
                             Montant
@@ -558,7 +605,7 @@ function Reservation() {
                   <TableContainer component={Paper}>
                     <Table aria-label="remises">
                       <TableHead>
-                        <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                        <TableRow>
                           <TableCell sx={{ fontWeight: 500 }}>
                             Nom de la réduction
                           </TableCell>
@@ -608,7 +655,7 @@ function Reservation() {
                 <TableContainer component={Paper}>
                   <Table aria-label="remises">
                     <TableHead>
-                      <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                      <TableRow>
                         <TableCell sx={{ fontWeight: 500 }}>
                           Désignation
                         </TableCell>
@@ -659,6 +706,95 @@ function Reservation() {
                     </TableBody>
                   </Table>
                 </TableContainer>
+
+                <div style={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
+                  <div style={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
+                    <Grid container alignItems="center" spacing={2}>
+                      <Grid item>
+                        <Typography
+                          variant="body1"
+                          sx={{ fontWeight: 500, fontSize: "1rem" }}
+                        >
+                          Paiement en plusieurs fois
+                        </Typography>
+                      </Grid>
+                      <Grid item>
+                        <TextField
+                          select
+                          name="paymentPlan"
+                          value={paymentPlan}
+                          onChange={handlePaymentPlanChange} // Met à jour la répartition et les montants en euros
+                          sx={{ width: "120px" }}
+                        >
+                          <MenuItem value="Non">Non</MenuItem>
+                          <MenuItem value="2x">2x</MenuItem>
+                          <MenuItem value="3x">3x</MenuItem>
+                        </TextField>
+                      </Grid>
+                    </Grid>
+                  </div>
+
+                  {/* Affichage des lignes de paiement si paiement multiple */}
+                  {paymentPlan !== "Non" && (
+                    <TableContainer
+                      component={Paper}
+                      style={{ marginTop: "20px" }}
+                    >
+                      <Table>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Paiement n°</TableCell>
+                            <TableCell>Répartition en %</TableCell>
+                            <TableCell>Montant en €</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {paymentPercentages.map((percentage, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{`n°${index + 1}`}</TableCell>
+                              <TableCell>
+                                <TextField
+                                  type="number"
+                                  value={percentage}
+                                  onChange={(e) => {
+                                    const newPercentages = [
+                                      ...paymentPercentages,
+                                    ];
+                                    newPercentages[index] = parseInt(
+                                      e.target.value
+                                    );
+                                    setPaymentPercentages(newPercentages);
+                                  }}
+                                  fullWidth
+                                />
+                              </TableCell>
+                              <TableCell>{paymentValues[index]} €</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  )}
+
+                  {/* Bouton pour recalculer la répartition */}
+                  {paymentPlan !== "Non" && (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleRecalculate}
+                      style={{ marginTop: "20px", fontSize: "x-small" }}
+                    >
+                      Recalculer la répartition
+                    </Button>
+                  )}
+
+                  {/* Afficher une erreur si les pourcentages ne sont pas corrects */}
+                  {paymentError && (
+                    <Typography color="error" style={{ marginTop: "10px" }}>
+                      {paymentError}
+                    </Typography>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </Grid>

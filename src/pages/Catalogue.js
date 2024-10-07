@@ -192,40 +192,20 @@ const Catalogue = () => {
         sx={{ marginTop: (theme) => theme.spacing(4) }}
       >
         <Table sx={{ minWidth: 650 }}>
-          <TableHead sx={{ backgroundColor: "primary.main" }}>
+          <TableHead>
             <TableRow>
-              <TableCell sx={{ color: "common.white", fontWeight: "bold" }}>
-                Type
-              </TableCell>
-              <TableCell sx={{ color: "common.white", fontWeight: "bold" }}>
-                Titre
-              </TableCell>
-              <TableCell sx={{ color: "common.white", fontWeight: "bold" }}>
-                Description
-              </TableCell>
-              <TableCell sx={{ color: "common.white", fontWeight: "bold" }}>
-                Durée
-              </TableCell>
-              <TableCell sx={{ color: "common.white", fontWeight: "bold" }}>
-                Prix
-              </TableCell>
-              <TableCell sx={{ color: "common.white", fontWeight: "bold" }}>
-                Option(s)
-              </TableCell>
-              <TableCell sx={{ color: "common.white", fontWeight: "bold" }}>
-                Action(s)
-              </TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Titre</TableCell>
+              <TableCell>Description</TableCell>
+              <TableCell>Durée</TableCell>
+              <TableCell>Prix</TableCell>
+              <TableCell>Option(s)</TableCell>
+              <TableCell>Action(s)</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredCatalog.map((item) => (
-              <TableRow
-                key={item.id}
-                sx={{
-                  "&:nth-of-type(odd)": { backgroundColor: "action.hover" },
-                  "&:hover": { backgroundColor: "grey.200" },
-                }}
-              >
+              <TableRow key={item.id}>
                 <TableCell>{item.type}</TableCell>
                 <TableCell>{item.name}</TableCell>
                 <TableCell>{item.description}</TableCell>

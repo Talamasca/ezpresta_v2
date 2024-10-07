@@ -175,44 +175,20 @@ const Customers = () => {
         }}
       >
         <Table sx={{ minWidth: 650 }}>
-          <TableHead sx={{ backgroundColor: "primary.main" }}>
+          <TableHead>
             <TableRow>
-              <TableCell sx={{ color: "common.white", fontWeight: "bold" }}>
-                Company
-              </TableCell>
-              <TableCell sx={{ color: "common.white", fontWeight: "bold" }}>
-                Email
-              </TableCell>
-              <TableCell sx={{ color: "common.white", fontWeight: "bold" }}>
-                First Name
-              </TableCell>
-              <TableCell sx={{ color: "common.white", fontWeight: "bold" }}>
-                Phone
-              </TableCell>
-              <TableCell sx={{ color: "common.white", fontWeight: "bold" }}>
-                Address
-              </TableCell>
-              <TableCell sx={{ color: "common.white", fontWeight: "bold" }}>
-                Note
-              </TableCell>
-              <TableCell sx={{ color: "common.white", fontWeight: "bold" }}>
-                Actions
-              </TableCell>
+              <TableCell>Company</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>First Name</TableCell>
+              <TableCell>Phone</TableCell>
+              <TableCell>Address</TableCell>
+              <TableCell>Note</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {customers.map((customer) => (
-              <TableRow
-                key={customer.id}
-                sx={{
-                  "&:nth-of-type(odd)": {
-                    backgroundColor: "action.hover",
-                  },
-                  "&:hover": {
-                    backgroundColor: "grey.200",
-                  },
-                }}
-              >
+              <TableRow key={customer.id}>
                 <TableCell sx={{ padding: (theme) => theme.spacing(2) }}>
                   {customer.company}
                 </TableCell>

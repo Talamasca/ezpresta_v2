@@ -9,7 +9,7 @@ import {
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
+//import Toolbar from "@mui/material/Toolbar";
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
 import Login from "./pages/Login";
@@ -23,6 +23,7 @@ import Reservation from "./pages/Reservation";
 import Workflow from "./pages/Workflow";
 import WorkflowForm from "./components/WorkflowForm";
 import CustomerSource from "./pages/CustomerSource";
+import { blue, grey } from "@mui/material/colors";
 
 const App = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -30,6 +31,45 @@ const App = () => {
   const theme = createTheme({
     palette: {
       mode: darkMode ? "dark" : "light",
+      primary: {
+        light: blue[300],
+        main: blue[500],
+        dark: blue[700],
+        darker: blue[900],
+      },
+      action: {
+        hover: darkMode ? blue[800] : grey[50],
+      },
+    },
+    components: {
+      MuiTableRow: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            // Appliquer les styles uniquement aux lignes dans le `TableBody`
+            [`tbody &`]: {
+              "&:nth-of-type(odd)": {
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.grey[800] // Mode sombre, ligne impaire
+                    : theme.palette.action.hover, // Mode clair, ligne impaire
+              },
+              "&:hover": {
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? theme.palette.grey[700] // Mode sombre, survol
+                    : blue[50], // Mode clair, survol
+              },
+            },
+          }),
+          head: ({ theme }) => ({
+            // Styles pour les lignes dans le `TableHead`
+            backgroundColor:
+              theme.palette.mode === "dark"
+                ? theme.palette.grey[900] // Mode sombre pour le `TableHead`
+                : blue[200], // Mode clair pour le `TableHead`
+          }),
+        },
+      },
     },
   });
 
