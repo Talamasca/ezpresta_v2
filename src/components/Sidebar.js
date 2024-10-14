@@ -37,7 +37,7 @@ const Sidebar = () => {
     { text: "Tableau de bord", icon: <DashboardIcon />, path: "/dashboard" },
     { text: "Catalogue", icon: <StoreIcon />, path: "/Catalogue" },
     { text: "Clients", icon: <PeopleIcon />, path: "/Customers" },
-    { text: "Agenda", icon: <EventIcon />, path: "/agenda" },
+    { text: "Agenda", icon: <EventIcon />, path: "/Agenda" },
     { text: "Nouveau Rdv", icon: <AddCircleIcon />, path: "/new-appointment" },
     {
       text: "Nouvelle réservation",

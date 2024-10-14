@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { db } from "../firebase";
-import { collection, getDocs, query } from "firebase/firestore";
+import { addDoc, collection, getDocs, query } from "firebase/firestore";
 import { useSnackbar } from "notistack";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -76,6 +76,68 @@ function Reservation() {
   const handleConfirmRemoveLocation = () => {
     removeLocationByIndex(locationToRemove);
     handleCloseConfirmDialog();
+  };
+
+  // Fonction pour sauvegarder la réservation dans Firestore
+  const handleSaveReservation = async () => {
+    if (!selectedService || !selectedClient || !selectedDate) {
+      enqueueSnackbar("Merci de remplir tous les champs requis.", {
+        variant: "error",
+      });
+      return;
+    }
+
+    const orderData = {
+      client_id: selectedClient.id, // Lien vers la collection "clients"
+      catalog_id: selectedService, // Lien vers la collection "catalogues"
+      servicePrice: servicePrice,
+      fees: fees,
+      discounts: discounts,
+      totalPrice: totalPrice, // Prix total calculé
+      selectedDate: selectedDate.toISOString(), // Date de la prestation
+      locations: locations.map((location) => ({
+        place_id: location.place.place_id,
+        locationWhere: location.place
+          ? location.place.description || location.place.formatted_address
+          : "",
+        eventName: location.eventName,
+        isDefault: location.isDefault || false,
+        eventDate: location.eventDate,
+      })),
+      workflow: selectedWorkflow
+        ? {
+            id: selectedWorkflow.id,
+            tasks: workflowTasks, // Liste des tâches
+          }
+        : null, // Workflow sélectionné s'il y en a un
+      paymentPlan: paymentPlan !== "Non" ? paymentPlan : null, // Plan de paiement
+      paymentDetails:
+        paymentPlan !== "Non"
+          ? paymentPercentages.map((percentage, index) => ({
+              paymentNumber: index + 1,
+              percentage: percentage,
+              value: paymentValues[index],
+              isPaid: false, // Non payé par défaut
+            }))
+          : [], // Répartition des paiements si applicable
+      createDate: new Date().toISOString(), // Date de création
+    };
+
+    try {
+      console.log(orderData);
+      await addDoc(collection(db, `users/${currentUser.uid}/orders`), {
+        orderData,
+      }); // Ajout de la réservation dans Firestore
+
+      enqueueSnackbar("Réservation enregistrée avec succès.", {
+        variant: "success",
+      });
+    } catch (error) {
+      enqueueSnackbar(
+        "Erreur lors de l'enregistrement de la réservation : " + error.message,
+        { variant: "error" }
+      );
+    }
   };
 
   useEffect(() => {
@@ -178,6 +240,9 @@ function Reservation() {
   };
 
   const handleLocationSave = (newLocation) => {
+    console.log("LOCATION");
+    console.log(newLocation);
+
     setLocations((prevLocations) => [...prevLocations, newLocation]);
     enqueueSnackbar("Lieu ajouté avec succès", { variant: "success" });
   };
@@ -292,7 +357,7 @@ function Reservation() {
                   <MUIAutocomplete
                     options={clients}
                     getOptionLabel={(option) =>
-                      option ? `${option.firstname} ${option.lastname}` : ""
+                      option ? `${option.firstname}` : ""
                     }
                     style={{ width: 300 }}
                     onChange={handleClientChange}
@@ -335,7 +400,7 @@ function Reservation() {
 
                 <LocalizationProvider
                   dateAdapter={AdapterDateFns}
-                  locale={frLocale}
+                  adapterLocale={frLocale}
                 >
                   <DatePicker
                     label="Date de la prestation"
@@ -794,6 +859,20 @@ function Reservation() {
                 </div>
               </CardContent>
             </Card>
+          </Grid>
+
+          <Grid item xs={12} sm={12} md={6}>
+            <div>
+              {/* Autres composants existants */}
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSaveReservation}
+                sx={{ marginTop: "20px" }}
+              >
+                Enregistrer la réservation
+              </Button>
+            </div>
           </Grid>
         </Grid>
       </Box>

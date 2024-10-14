@@ -23,6 +23,7 @@ import Reservation from "./pages/Reservation";
 import Workflow from "./pages/Workflow";
 import WorkflowForm from "./components/WorkflowForm";
 import CustomerSource from "./pages/CustomerSource";
+import Agenda from "./pages/Agenda";
 import { blue, grey } from "@mui/material/colors";
 
 const App = () => {
@@ -93,6 +94,7 @@ const App = () => {
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/customers" element={<Customers />} />
                       <Route path="/catalogue" element={<Catalogue />} />
+
                       <Route path="/reservation" element={<Reservation />} />
                       <Route path="/settings" element={<Settings />} />
                       <Route path="/workflow" element={<Workflow />} />
@@ -108,6 +110,7 @@ const App = () => {
                         path="*"
                         element={<Navigate to="/dashboard" replace />}
                       />
+                      <Route path="/agenda" element={<Agenda />} />
                     </Routes>
                   </PrivateLayout>
                 }

@@ -198,40 +198,6 @@ const Settings = () => {
     }
   };
 
-  const handleAddSource = async () => {
-    if (newSource) {
-      const sourcesCollection = collection(
-        db,
-        `users/${currentUser.uid}/customerSource`
-      );
-      await addDoc(sourcesCollection, { name: newSource });
-
-      // Mettre à jour l'état local après ajout
-      setSources([...sources, { id: Date.now().toString(), name: newSource }]);
-      setNewSource(""); // Réinitialiser le champ d'ajout
-    }
-  };
-
-  const handleDeleteSource = async (id) => {
-    const sourceDoc = doc(db, `users/${currentUser.uid}/customerSource/${id}`);
-    await deleteDoc(sourceDoc);
-
-    // Mettre à jour l'état local après suppression
-    setSources(sources.filter((source) => source.id !== id));
-  };
-
-  const handleUpdateSource = async (id, newSourceValue) => {
-    const sourceDoc = doc(db, `users/${currentUser.uid}/customerSource/${id}`);
-    await updateDoc(sourceDoc, { name: newSourceValue });
-
-    // Mettre à jour l'état local après modification
-    setSources(
-      sources.map((source) =>
-        source.id === id ? { ...source, name: newSourceValue } : source
-      )
-    );
-  };
-
   return (
     <Box sx={{ p: 2 }}>
       <Typography variant="h4" gutterBottom>

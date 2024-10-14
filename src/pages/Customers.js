@@ -107,13 +107,6 @@ const Customers = () => {
     setSelectedCustomerId(null);
   };
 
-  /*
-  const handleSaveCustomer = (updatedCustomers) => {
-    setCustomers(updatedCustomers);
-    handleCloseForm();
-  };
-*/
-
   const handleSaveCustomer = (newCustomer) => {
     setCustomers((prevCustomers) =>
       prevCustomers.some((customer) => customer.id === newCustomer.id)
