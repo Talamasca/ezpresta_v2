@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { IconButton, Tooltip } from "@mui/material";
+import { IconButton, Tooltip, Menu, MenuItem } from "@mui/material";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -14,7 +14,7 @@ const PDFInvoiceGenerator = ({ reservation, type }) => {
   const [userData, setUserData] = useState(null);
   const [catalogData, setCatalogData] = useState(null);
   const [clientData, setClientData] = useState(null); // Nouvel état pour les données client
-
+  const [menuAnchor, setMenuAnchor] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -46,6 +46,8 @@ const PDFInvoiceGenerator = ({ reservation, type }) => {
     fetchClientData();
   }, [currentUser.uid, reservation.catalog_id, reservation.client_id]);
 
+    const openMenu = (event) => setMenuAnchor(event.currentTarget);
+  const closeMenu = () => setMenuAnchor(null);
 
  // Fonction pour téléverser le fichier PDF dans Firebase Storage
   const uploadPDFToStorage = async (pdfBlob, fileName, docNumber) => {
@@ -69,8 +71,8 @@ const PDFInvoiceGenerator = ({ reservation, type }) => {
     }
   };
 
-const generatePDF = async () => {
-  if (!userData || !catalogData) return;
+const generatePDF = async (type) => {
+    if (!userData || !catalogData) return;
 
     const pdf = new jsPDF();
     const today = new Date().toLocaleDateString("fr-FR");
@@ -81,26 +83,29 @@ const generatePDF = async () => {
     const orderDocRef = doc(db, `users/${currentUser.uid}/orders/${reservation.id}`);
     const orderDoc = await getDoc(orderDocRef);
 
-    if (orderDoc.exists()) {
+   if (orderDoc.exists()) {
       const orderData = orderDoc.data();
-      const lastVersion = orderData[`${type}_version`] || 0;
-      version = lastVersion + 1;
+      docNumber = orderData[`${type}_number`] || (type === "facture" ? userData.invoice : userData.quote);
+      version = (orderData[`${type}_version`] || 0) + 1;
+
+      if (!orderData[`${type}_number`]) {
+        await updateDoc(orderDocRef, { [`${type}_number`]: docNumber });
+      }
       await updateDoc(orderDocRef, { [`${type}_version`]: version });
     } else {
-      await setDoc(orderDocRef, { [`${type}_version`]: version });
+      docNumber = type === "facture" ? userData.invoice : userData.quote;
+      await setDoc(orderDocRef, { [`${type}_number`]: docNumber, [`${type}_version`]: version });
     }
 
     const fileName = `${type === "facture" ? "Facture" : "Devis"}_${docNumber}-${version}.pdf`;
 
-  // En-tête du document
-  pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(20);
-  pdf.text(`${type === "facture" ? "FACTURE" : "DEVIS"} n° ${docNumber}`, 10, 10);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(20);
+    pdf.text(`${type === "facture" ? "FACTURE" : "DEVIS"} n° ${docNumber}-${version}`, 10, 10);
+    pdf.setFontSize(12);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(`DATE : ${today}`, 200, 10, { align: "right" });
 
-  // Positionner la date en haut à droite
-  pdf.setFontSize(12);
-  pdf.setFont("helvetica", "normal");
-  pdf.text(`DATE : ${today}`, 200, 10, { align: "right" });
 
     // Logo (centré, avec proportions conservées)
     if (userData.logo) {
@@ -223,12 +228,32 @@ const generatePDF = async () => {
     pdf.save(fileName);
 };
 
-  return (
-    <Tooltip title={`Générer ${type === "facture" ? "Facture" : "Devis"}`}>
-      <IconButton onClick={generatePDF}>
-        <PictureAsPdfIcon color="primary" />
-      </IconButton>
-    </Tooltip>
+return (
+    <>
+      <Tooltip title="Options de PDF">
+        <IconButton onClick={openMenu}>
+          <PictureAsPdfIcon color="primary" />
+        </IconButton>
+      </Tooltip>
+      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={closeMenu}>
+        <MenuItem
+          onClick={() => {
+            closeMenu();
+            generatePDF("devis");
+          }}
+        >
+          Télécharger le devis
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            closeMenu();
+            generatePDF("facture");
+          }}
+        >
+          Générer la facture
+        </MenuItem>
+      </Menu>
+    </>
   );
 };
 

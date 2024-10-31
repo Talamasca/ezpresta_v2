@@ -383,8 +383,7 @@ const confirmDelete = () => {
     <ReservationUpload reservation={reservation} />
                           </span>
                           <span>
-                            <PDFInvoiceGenerator reservation={reservation} type="facture" />
-<PDFInvoiceGenerator reservation={reservation} type="devis" />
+<PDFInvoiceGenerator reservation={reservation}/>
                           </span>
  <Tooltip
                           title={
