@@ -26,19 +26,27 @@ import {
 } from "@mui/material";
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import MapIcon from "@mui/icons-material/Map";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+//import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import CustomerDetails from "../components/CustomerDetails";
 import { useSnackbar } from "notistack";
 import { deleteDoc } from "firebase/firestore";
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from "@mui/material";
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete"; // Import de l'icône de suppression
 import ReservationICS from "../components/ReservationICS"; // Import du composant BookingIcal
 import ReservationTodo from "../components/ReservationTodo";
 import ReservationUpload from "../components/ReservationUpload";
 import PDFInvoiceGenerator from "../components/ReservationPDF";
 import CancelReservation from "../components/ReservationCanceled";
+import ValidateReservation from "../components/ReservationValidate";
 
 const Agenda = () => {
   const { currentUser } = useAuth();
@@ -146,20 +154,15 @@ const Agenda = () => {
         username: reservation.clientName,
         catalogType: reservation.productType,
         client: reservation.clientName,
-        where:
-          reservation.locations[0]?.locationWhere ||
-          "Lieu non défini",
+        where: reservation.locations[0]?.locationWhere || "Lieu non défini",
         placeId: reservation.locations[0]?.place_id || "N/A",
         priceToPay: reservation.totalPrice,
-        date: new Date(reservation.selectedDate).toLocaleString(
-          "fr-FR",
-          {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-            weekday: "long",
-          }
-        ),
+        date: new Date(reservation.selectedDate).toLocaleString("fr-FR", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          weekday: "long",
+        }),
       });
 
       enqueueSnackbar("Prestation validée et e-mail envoyé.", {
@@ -178,8 +181,7 @@ const Agenda = () => {
     }
   };
 
-
-    // Calcul des événements pour le calendrier
+  // Calcul des événements pour le calendrier
   const calculateEvent = (reservation) => ({
     title: `EzPresta : ${reservation.productType} - ${reservation.clientName}`,
     description: `Prestation avec ${reservation.clientName}`,
@@ -190,48 +192,57 @@ const Agenda = () => {
     location: reservation.locations[0]?.locationWhere || "Lieu non défini",
   });
 
-
   // Fonction pour supprimer une réservation
-const handleDeleteReservation = async (reservationId, reservation) => {
-  if (reservation.orderIsConfirmed) {
-    enqueueSnackbar("Vous ne pouvez pas effacer une prestation validée", { variant: "error" });
-    return;
-  }
+  const handleDeleteReservation = async (reservationId, reservation) => {
+    if (reservation.orderIsConfirmed) {
+      enqueueSnackbar("Vous ne pouvez pas effacer une prestation validée", {
+        variant: "error",
+      });
+      return;
+    }
 
-  try {
-    const orderRef = doc(db, `users/${currentUser.uid}/orders`, reservationId);
-    await deleteDoc(orderRef); // Supprime la réservation dans Firestore
+    try {
+      const orderRef = doc(
+        db,
+        `users/${currentUser.uid}/orders`,
+        reservationId
+      );
+      await deleteDoc(orderRef); // Supprime la réservation dans Firestore
 
-    enqueueSnackbar("La prestation a bien été effacée", { variant: "success" });
+      enqueueSnackbar("La prestation a bien été effacée", {
+        variant: "success",
+      });
 
-    // Mettre à jour l'état local en supprimant la réservation effacée
-    const updatedReservations = reservations.filter((r) => r.id !== reservationId);
-    setReservations(updatedReservations);
-  } catch (error) {
-    enqueueSnackbar("Erreur lors de la suppression", { variant: "error" });
-  }
-};
+      // Mettre à jour l'état local en supprimant la réservation effacée
+      const updatedReservations = reservations.filter(
+        (r) => r.id !== reservationId
+      );
+      setReservations(updatedReservations);
+    } catch (error) {
+      enqueueSnackbar("Erreur lors de la suppression", { variant: "error" });
+    }
+  };
 
-// Ajout de la boîte de dialogue de confirmation
-const [openDialog, setOpenDialog] = useState(false); // État pour gérer l'ouverture de la boîte de dialogue
-const [reservationToDelete, setReservationToDelete] = useState(null); // Garde la réservation à supprimer
+  // Ajout de la boîte de dialogue de confirmation
+  const [openDialog, setOpenDialog] = useState(false); // État pour gérer l'ouverture de la boîte de dialogue
+  const [reservationToDelete, setReservationToDelete] = useState(null); // Garde la réservation à supprimer
 
-const handleOpenDialog = (reservation) => {
-  setReservationToDelete(reservation);
-  setOpenDialog(true); // Ouvre la boîte de dialogue
-};
+  const handleOpenDialog = (reservation) => {
+    setReservationToDelete(reservation);
+    setOpenDialog(true); // Ouvre la boîte de dialogue
+  };
 
-const handleCloseDialog = () => {
-  setOpenDialog(false);
-  setReservationToDelete(null); // Ferme la boîte de dialogue et réinitialise la réservation
-};
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setReservationToDelete(null); // Ferme la boîte de dialogue et réinitialise la réservation
+  };
 
-const confirmDelete = () => {
-  if (reservationToDelete) {
-    handleDeleteReservation(reservationToDelete.id, reservationToDelete);
-    handleCloseDialog(); // Ferme la boîte de dialogue après suppression
-  }
-};
+  const confirmDelete = () => {
+    if (reservationToDelete) {
+      handleDeleteReservation(reservationToDelete.id, reservationToDelete);
+      handleCloseDialog(); // Ferme la boîte de dialogue après suppression
+    }
+  };
 
   // Fonction pour gérer l'ouverture de la boîte de dialogue de détails du client
   const handleOpenCustomerDialog = async (customerId) => {
@@ -289,14 +300,15 @@ const confirmDelete = () => {
                   </TableCell>
                   <TableCell>{reservation.productType}</TableCell>
                   <TableCell>
-                    {new Date(
-                      reservation.selectedDate
-                    ).toLocaleString("fr-FR", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      weekday: "long",
-                    })}
+                    {new Date(reservation.selectedDate).toLocaleString(
+                      "fr-FR",
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        weekday: "long",
+                      }
+                    )}
                   </TableCell>
                   <TableCell>
                     {reservation.clientName}
@@ -310,12 +322,9 @@ const confirmDelete = () => {
                   </TableCell>
                   <TableCell>{reservation.totalPrice} €</TableCell>
                   <TableCell>
-                    {reservation.locations &&
-                    reservation.locations.length > 0
-                      ? reservation.locations[0].locationWhere.slice(
-                          0,
-                          60
-                        ) || "Lieu non défini"
+                    {reservation.locations && reservation.locations.length > 0
+                      ? reservation.locations[0].locationWhere.slice(0, 60) ||
+                        "Lieu non défini"
                       : "Lieu non défini"}
                     {reservation.locations &&
                       reservation.locations[0]?.place_id && (
@@ -344,24 +353,49 @@ const confirmDelete = () => {
                     >
                       <Box margin={1}>
                         <div style={{ textAlign: "center" }}>
+                          
+                          <span>
+                            <ValidateReservation reservation={reservation} />
+                          </span>
+                          
+                          <span aria-label="Annulation de la réservation">
+                            <CancelReservation reservation={reservation} />
+                          </span>
+
+                          <span aria-label="Calendrier">
+                            {/* Export ICS*/}
+                            <ReservationICS reservation={reservation} />
+                          </span>
+                          <span aria-label="Todo list">
+                            {/* Export TODO */}
+                            <ReservationTodo reservation={reservation} />
+                          </span>
+                          <span aria-label="Todo list">
+                            {/* Export TODO */}
+                            <ReservationUpload reservation={reservation} />
+                          </span>
+                          <span>
+                            <PDFInvoiceGenerator reservation={reservation} />
+                          </span>
                           <Tooltip
                             title={
                               reservation.orderIsConfirmed
-                                ? "Prestation déjà validée"
-                                : "Valider la prestation"
+                                ? "Vous ne pouvez pas effacer une prestation validée"
+                                : "Supprimer la prestation"
                             }
                           >
                             <span>
                               <IconButton
                                 onClick={() =>
-                                  handleValidateReservation(
-                                    reservation.id,
-                                    reservation
-                                  )
+                                  reservation.orderIsConfirmed
+                                    ? enqueueSnackbar(
+                                        "Vous ne pouvez pas effacer une prestation validée",
+                                        { variant: "error" }
+                                      )
+                                    : handleOpenDialog(reservation)
                                 }
-                                disabled={reservation.orderIsConfirmed}
                               >
-                                <CheckCircleIcon
+                                <DeleteIcon
                                   color={
                                     reservation.orderIsConfirmed
                                       ? "disabled"
@@ -371,49 +405,7 @@ const confirmDelete = () => {
                               </IconButton>
                             </span>
                           </Tooltip>
-                          <span aria-label="Annulation de la réservation">
-<CancelReservation reservation={reservation}  />
-                          </span>
-
-                          <span aria-label="Calendrier">
-                             {/* Export ICS*/}
-    <ReservationICS reservation={reservation} /> 
-                          </span>
-                               <span aria-label="Todo list">
-                             {/* Export TODO */}
-    <ReservationTodo reservation={reservation} />
-                          </span>
-                            <span aria-label="Todo list">
-                             {/* Export TODO */}
-    <ReservationUpload reservation={reservation} />
-                          </span>
-                          <span>
-<PDFInvoiceGenerator reservation={reservation}/>
-                          </span>
- <Tooltip
-                          title={
-                            reservation.orderIsConfirmed
-                              ? "Vous ne pouvez pas effacer une prestation validée"
-                              : "Supprimer la prestation"
-                          }
-                        >
-                          
-                          <span>
-                            <IconButton
-                              onClick={() =>
-                                reservation.orderIsConfirmed
-                                  ? enqueueSnackbar("Vous ne pouvez pas effacer une prestation validée", { variant: "error" })
-                                  : handleOpenDialog(reservation)
-                              }
-                              
-                            >
-                              <DeleteIcon
-                                color={reservation.orderIsConfirmed ? "disabled" : "primary"}
-                              />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
-                      </div>
+                        </div>
                       </Box>
                     </Collapse>
                   </TableCell>
@@ -433,27 +425,31 @@ const confirmDelete = () => {
       />
 
       {/* Boîte de dialogue de confirmation de suppression */}
-    <Dialog
-      open={openDialog}
-      onClose={handleCloseDialog}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
-    >
-      <DialogTitle id="alert-dialog-title">{"Confirmation de suppression"}</DialogTitle>
-      <DialogContent>
-        <DialogContentText id="alert-dialog-description">
-          Veuillez confirmer que vous souhaitez bien supprimer cette prestation. Attention cette action est irréversible ! (Note : vous ne pouvez pas effacer les prestations validées / payées)
-        </DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleCloseDialog} color="primary">
-          Annuler
-        </Button>
-        <Button onClick={confirmDelete} color="secondary" autoFocus>
-          Confirmer
-        </Button>
-      </DialogActions>
-    </Dialog>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Confirmation de suppression"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Veuillez confirmer que vous souhaitez bien supprimer cette
+            prestation. Attention cette action est irréversible ! (Note : vous
+            ne pouvez pas effacer les prestations validées / payées)
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            Annuler
+          </Button>
+          <Button onClick={confirmDelete} color="secondary" autoFocus>
+            Confirmer
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

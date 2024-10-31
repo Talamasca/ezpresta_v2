@@ -15,8 +15,6 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 }));
 
 export default function ReservationUpload({ reservation }) {
-        console.log("reservation", reservation);
-
   const { currentUser } = useAuth(); // Récupérer l'utilisateur connecté
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
@@ -25,8 +23,6 @@ export default function ReservationUpload({ reservation }) {
   const [files, setFiles] = useState([]);
 
   const reservationId = reservation.id; // ID de la réservation
-    console.log("reservationId", reservationId);
-
   const userId = currentUser.uid; // ID de l'utilisateur connecté
   const storagePath = `${userId}/booking/${reservationId}`; // Chemin de stockage dans Firebase Storage
   const storage = getStorage(); // Instance Firebase Storage

@@ -44,11 +44,13 @@ const CancelReservation = ({ reservation }) => {
     setOpen(false);
   };
 
+  const checkOrderCanceled = (reservation.orderIsCanceled && true === reservation.orderIsCanceled) ? true : false;
+  
   return (
     <>
-     <Tooltip title={reservation.orderIsCanceled ? "Prestation déjà annulée" : "Annuler la prestation" }>
-          <IconButton onClick={handleOpen}  disabled={reservation.orderIsConfirmed}>
-                <CancelIcon color={reservation.orderIsCanceled ? "disabled" : "primary"} /> 
+     <Tooltip title={checkOrderCanceled ? "Prestation déjà annulée" : "Annuler la prestation" }>
+          <IconButton onClick={handleOpen}  disabled={checkOrderCanceled}>
+                <CancelIcon color={checkOrderCanceled ? "disabled" : "primary"} /> 
           </IconButton>
      </Tooltip>     
       

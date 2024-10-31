@@ -236,9 +236,6 @@ function Reservation() {
   };
 
   const handleLocationSave = (newLocation) => {
-    console.log("LOCATION");
-    console.log(newLocation);
-
     setLocations((prevLocations) => [...prevLocations, newLocation]);
     enqueueSnackbar("Lieu ajouté avec succès", { variant: "success" });
   };
