@@ -24,6 +24,7 @@ import EventIcon from "@mui/icons-material/Event";
 import PersonIcon from "@mui/icons-material/Person";
 import ContactPhoneIcon from "@mui/icons-material/ContactPhone";
 import WorkIcon from "@mui/icons-material/Work";
+import CancelPresentationIcon from '@mui/icons-material/CancelPresentation';
 
 const Sidebar = () => {
   const { currentUser } = useAuth();
@@ -117,7 +118,19 @@ const Sidebar = () => {
               </ListItemIcon>
               <ListItemText primary="Gérer les provenances de contact" />
             </ListItem>
-
+            
+            <ListItem
+              button
+              component={Link}
+              to="/rejection-reasons"
+              sx={{ pl: 4 }}
+            >
+              <ListItemIcon>
+                <CancelPresentationIcon />
+              </ListItemIcon>
+              <ListItemText primary="Gérer les motifs de refus" />
+            </ListItem>
+            
             <ListItem button component={Link} to="/workflow" sx={{ pl: 4 }}>
               <ListItemIcon>
                 <WorkIcon />

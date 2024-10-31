@@ -23,6 +23,7 @@ import Reservation from "./pages/Reservation";
 import Workflow from "./pages/Workflow";
 import WorkflowForm from "./components/WorkflowForm";
 import CustomerSource from "./pages/CustomerSource";
+import RejectionReasons from "./pages/RejectionReasons";
 import Agenda from "./pages/Agenda";
 import { blue, grey } from "@mui/material/colors";
 
@@ -106,6 +107,7 @@ const App = () => {
                         path="/customer-source"
                         element={<CustomerSource />}
                       />
+                      <Route path="/rejection-reasons" element={<RejectionReasons />} />
                       <Route
                         path="*"
                         element={<Navigate to="/dashboard" replace />}

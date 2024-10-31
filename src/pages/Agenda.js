@@ -38,6 +38,7 @@ import ReservationICS from "../components/ReservationICS"; // Import du composan
 import ReservationTodo from "../components/ReservationTodo";
 import ReservationUpload from "../components/ReservationUpload";
 import PDFInvoiceGenerator from "../components/ReservationPDF";
+import CancelReservation from "../components/ReservationCanceled";
 
 const Agenda = () => {
   const { currentUser } = useAuth();
@@ -370,6 +371,10 @@ const confirmDelete = () => {
                               </IconButton>
                             </span>
                           </Tooltip>
+                          <span aria-label="Annulation de la réservation">
+<CancelReservation reservation={reservation}  />
+                          </span>
+
                           <span aria-label="Calendrier">
                              {/* Export ICS*/}
     <ReservationICS reservation={reservation} /> 

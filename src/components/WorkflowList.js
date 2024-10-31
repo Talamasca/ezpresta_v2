@@ -137,7 +137,7 @@ const WorkflowList = () => {
           variant="contained"
           style={{ marginTop: "10px" }}
         >
-          Ajouter Workflow
+        Créer un Workflow
         </Button>
       </div>
 
