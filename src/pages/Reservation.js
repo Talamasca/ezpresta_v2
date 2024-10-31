@@ -124,11 +124,7 @@ function Reservation() {
     };
 
     try {
-      console.log(orderData);
-      await addDoc(collection(db, `users/${currentUser.uid}/orders`), {
-        orderData,
-      }); // Ajout de la réservation dans Firestore
-
+      await addDoc(collection(db, `users/${currentUser.uid}/orders`), orderData); // Ajout de la réservation dans Firestore
       enqueueSnackbar("Réservation enregistrée avec succès.", {
         variant: "success",
       });
