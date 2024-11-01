@@ -47,6 +47,7 @@ import ReservationUpload from "../components/ReservationUpload";
 import PDFInvoiceGenerator from "../components/ReservationPDF";
 import CancelReservation from "../components/ReservationCanceled";
 import ValidateReservation from "../components/ReservationValidate";
+import PaymentManagement from "../components/ReservationPaymentManagement";
 
 const Agenda = () => {
   const { currentUser } = useAuth();
@@ -365,6 +366,9 @@ const Agenda = () => {
                           <span aria-label="Calendrier">
                             {/* Export ICS*/}
                             <ReservationICS reservation={reservation} />
+                          </span>
+                          <span aria-label="Gestion des paiements">
+                            <PaymentManagement reservation={reservation} />
                           </span>
                           <span aria-label="Todo list">
                             {/* Export TODO */}
