@@ -8,16 +8,14 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import MapIcon from "@mui/icons-material/Map";
 import {
+  Box,
   Button,
+  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle
-} from "@mui/material";
-import {
-  Box,
-  Collapse,
+  DialogTitle,
   IconButton,
   Paper,
   Table,
@@ -28,17 +26,15 @@ import {
   TableRow,
   Tooltip
 } from "@mui/material";
-import { deleteDoc } from "firebase/firestore";
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
   orderBy,
-  query,
-  updateDoc
+  query
 } from "firebase/firestore";
-import { getFunctions, httpsCallable } from "firebase/functions"; // Import correct des fonctions Firebase
 
 import CustomerDetails from "../components/CustomerDetails";
 import CancelReservation from "../components/ReservationCanceled";
@@ -128,72 +124,6 @@ const Agenda = () => {
     fetchReservations();
   }, [currentUser]);
 
-  // Fonction pour valider la prestation et envoyer un email
-  const handleValidateReservation = async (reservationId, reservation) => {
-    if (reservation.orderIsConfirmed) {
-      enqueueSnackbar("Cette prestation est déjà validée.", {
-        variant: "info"
-      });
-      return;
-    }
-
-    try {
-      const orderRef = doc(
-        db,
-        `users/${currentUser.uid}/orders`,
-        reservationId
-      );
-      await updateDoc(orderRef, {
-        orderIsConfirmed: true,
-        orderIsConfirmedDate: new Date().toISOString()
-      });
-
-      // Envoi d'un e-mail via Firebase Functions
-      const functions = getFunctions(); // Initialiser les fonctions Firebase
-      const sendMessage = httpsCallable(functions, "sendConfirmationOrderV2"); // Fonction pour envoyer l'e-mail
-
-      await sendMessage({
-        email: reservation.email,
-        username: reservation.clientName,
-        catalogType: reservation.productType,
-        client: reservation.clientName,
-        where: reservation.locations[0]?.locationWhere || "Lieu non défini",
-        placeId: reservation.locations[0]?.place_id || "N/A",
-        priceToPay: reservation.totalPrice,
-        date: new Date(reservation.selectedDate).toLocaleString("fr-FR", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          weekday: "long"
-        })
-      });
-
-      enqueueSnackbar("Prestation validée et e-mail envoyé.", {
-        variant: "success"
-      });
-
-      // Mise à jour de l'état local
-      const updatedReservations = reservations.map(r =>
-        r.id === reservationId ? { ...r, orderIsConfirmed: true } : r
-      );
-      setReservations(updatedReservations);
-    } catch (error) {
-      enqueueSnackbar("Erreur lors de la validation de la prestation.", {
-        variant: "error"
-      });
-    }
-  };
-
-  // Calcul des événements pour le calendrier
-  const calculateEvent = reservation => ({
-    title: `EzPresta : ${reservation.productType} - ${reservation.clientName}`,
-    description: `Prestation avec ${reservation.clientName}`,
-    startTime: reservation.selectedDate,
-    endTime: new Date(
-      new Date(reservation.selectedDate).getTime() + 8 * 60 * 60 * 1000
-    ), // Durée de 8 heures
-    location: reservation.locations[0]?.locationWhere || "Lieu non défini"
-  });
 
   // Fonction pour supprimer une réservation
   const handleDeleteReservation = async (reservationId, reservation) => {
@@ -329,14 +259,8 @@ const Agenda = () => {
                       ? reservation.locations[0].locationWhere.slice(0, 60) ||
                         "Lieu non défini"
                       : "Lieu non défini" }
-                    { reservation.locations &&
-                      reservation.locations[0]?.place_id && (
-                        <IconButton
-                        component="a"
-                        href={ `https://www.google.com/maps/place/?q=place_id:${reservation.locations[0].place_id}` }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                    { reservation.locations && reservation.locations[0]?.place_id && (
+                      <IconButton component="a" href={ `https://www.google.com/maps/place/?q=place_id:${reservation.locations[0].place_id}` } target="_blank" rel="noopener noreferrer" >
                         <MapIcon />
                       </IconButton>
                     ) }
@@ -451,7 +375,7 @@ const Agenda = () => {
           <Button onClick={ handleCloseDialog } color="primary">
             Annuler
           </Button>
-          <Button onClick={ confirmDelete } color="secondary" autoFocus>
+          <Button onClick={ confirmDelete } color="secondary" >
             Confirmer
           </Button>
         </DialogActions>
