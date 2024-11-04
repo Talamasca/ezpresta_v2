@@ -26,6 +26,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { db } from "../firebase";
 
+
 const paymentMethods = [
   { id: "CB", name: "Carte bancaire" },
   { id: "CHK", name: "Chèque" },
@@ -112,7 +113,7 @@ const PaymentManagement = ({ reservation }) => {
         <DialogTitle>Gestion des Paiements</DialogTitle>
         <DialogContent>
           <Typography variant="body1" gutterBottom>
-            Plan de paiement : { reservation.paymentPlan }
+            Plan de paiement : { reservation.paymentPlan !== "null" ? reservation.paymentPlan : "1x" }
           </Typography>
 
           <TableContainer>

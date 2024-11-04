@@ -1,5 +1,6 @@
 // Reservation.jsx
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import frLocale from "date-fns/locale/fr";
 import { useSnackbar } from "notistack";
 
@@ -8,14 +9,14 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import EditLocationIcon from "@mui/icons-material/EditLocation";
 import {
   Autocomplete as MUIAutocomplete,
-  Button,
-  Checkbox,
+  Box,   Button,
+  Card, CardContent,   Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
-  IconButton,
+  Grid,   IconButton,
   MenuItem,
   Table,
   TableBody,
@@ -23,9 +24,9 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField
+  TextField,
+  Typography 
 } from "@mui/material";
-import { Box, Card, CardContent, Grid, Typography } from "@mui/material";
 import Paper from "@mui/material/Paper";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -64,6 +65,8 @@ function Reservation() {
   const [workflows, setWorkflows] = useState([]);
   const [selectedWorkflow, setSelectedWorkflow] = useState(null);
   const [workflowTasks, setWorkflowTasks] = useState([]); // Les tâches du workflow sélectionné
+
+  const navigate = useNavigate(); // Initialiser le hook navigate
 
   const handleOpenConfirmDialog = index => {
     setLocationToRemove(index);
@@ -112,7 +115,7 @@ function Reservation() {
           tasks: workflowTasks // Liste des tâches
         }
         : null, // Workflow sélectionné s'il y en a un
-      paymentPlan: paymentPlan !== "Non" ? paymentPlan : null, // Plan de paiement
+      paymentPlan: paymentPlan !== "Non" ? paymentPlan : "null", // Plan de paiement
       paymentDetails:
         paymentPlan !== "Non"
           ? paymentPercentages.map((percentage, index) => ({
@@ -121,7 +124,14 @@ function Reservation() {
             value: paymentValues[index],
             isPaid: false // Non payé par défaut
           }))
-          : [], // Répartition des paiements si applicable
+          :[
+            {
+              paymentNumber: 1,
+              percentage: 100,
+              value: totalPrice,
+              isPaid: false // Non payé par défaut
+            }
+          ], // Répartition des paiements si applicable
       createDate: new Date().toISOString() // Date de création
     };
 
@@ -130,6 +140,8 @@ function Reservation() {
       enqueueSnackbar("Réservation enregistrée avec succès.", {
         variant: "success"
       });
+      // Redirection vers Agenda après la sauvegarde
+      navigate("/agenda");
     } catch (error) {
       enqueueSnackbar(
         "Erreur lors de l'enregistrement de la réservation : " + error.message,
