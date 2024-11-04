@@ -1,30 +1,32 @@
 // src/components/CustomerDetails.js
 import React, { useEffect, useState } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Avatar,
-  Typography,
-  Box,
-  CircularProgress,
-  Divider,
-} from "@mui/material";
-import { db, auth } from "../firebase";
-import { doc, getDoc } from "firebase/firestore";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
-import { List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
-import PersonIcon from "@mui/icons-material/Person";
-import MailOutlineIcon from "@mui/icons-material/MailOutline";
-import PhoneIcon from "@mui/icons-material/Phone";
-import HomeIcon from "@mui/icons-material/Home";
-import NoteIcon from "@mui/icons-material/Note";
-import Link from "@mui/material/Link";
-import SourceIcon from "@mui/icons-material/Source";
 
-const formatPhoneNumber = (phoneNumber) => {
+import HomeIcon from "@mui/icons-material/Home";
+import MailOutlineIcon from "@mui/icons-material/MailOutline";
+import NoteIcon from "@mui/icons-material/Note";
+import PersonIcon from "@mui/icons-material/Person";
+import PhoneIcon from "@mui/icons-material/Phone";
+import SourceIcon from "@mui/icons-material/Source";
+import { List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
+import {
+  Avatar,
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  Typography
+} from "@mui/material";
+import Link from "@mui/material/Link";
+import { doc, getDoc } from "firebase/firestore";
+
+import { auth, db } from "../firebase";
+
+const formatPhoneNumber = phoneNumber => {
   if (!phoneNumber) return "";
   const phoneNumberParsed = parsePhoneNumberFromString(phoneNumber, "FR");
   if (phoneNumberParsed) {
@@ -33,7 +35,7 @@ const formatPhoneNumber = (phoneNumber) => {
   return phoneNumber;
 };
 
-const phoneGetURI = (phoneNumber) => {
+const phoneGetURI = phoneNumber => {
   if (!phoneNumber) return "";
   const phoneNumberParsed = parsePhoneNumberFromString(phoneNumber, "FR");
   if (phoneNumberParsed) {
@@ -73,8 +75,8 @@ const CustomerDetails = ({ open, handleClose, customer, customerId }) => {
   }, [customerId, customer]);
 
   return (
-    <Dialog open={open} onClose={handleClose}>
-      {loading ? (
+    <Dialog open={ open } onClose={ handleClose }>
+      { loading ? (
         <Box
           display="flex"
           justifyContent="center"
@@ -90,18 +92,18 @@ const CustomerDetails = ({ open, handleClose, customer, customerId }) => {
           <DialogContent>
             <Box display="flex" flexDirection="column" alignItems="center">
               <Avatar
-                sx={{ bgcolor: "primary.main", width: 56, height: 56, mb: 2 }}
+                sx={ { bgcolor: "primary.main", width: 56, height: 56, mb: 2 } }
               >
-                {customerData?.firstname?.charAt(0)}
+                { customerData?.firstname?.charAt(0) }
               </Avatar>
-              <Typography variant="h6">{customerData?.firstname}</Typography>
+              <Typography variant="h6">{ customerData?.firstname }</Typography>
             </Box>
             <List>
               <ListItem>
                 <ListItemIcon>
                   <PersonIcon />
                 </ListItemIcon>
-                <ListItemText primary={customerData?.firstname} />
+                <ListItemText primary={ customerData?.firstname } />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
@@ -110,8 +112,8 @@ const CustomerDetails = ({ open, handleClose, customer, customerId }) => {
 
                 <ListItemText
                   primary={
-                    <Link href={`mailto:${customerData?.email}`}>
-                      {customerData?.email}
+                    <Link href={ `mailto:${customerData?.email}` }>
+                      { customerData?.email }
                     </Link>
                   }
                 />
@@ -122,8 +124,8 @@ const CustomerDetails = ({ open, handleClose, customer, customerId }) => {
                 </ListItemIcon>
                 <ListItemText
                   primary={
-                    <Link href={`${phoneGetURI(customerData?.phone)}`}>
-                      {formatPhoneNumber(customerData?.phone)}
+                    <Link href={ `${phoneGetURI(customerData?.phone)}` }>
+                      { formatPhoneNumber(customerData?.phone) }
                     </Link>
                   }
                 />
@@ -132,29 +134,29 @@ const CustomerDetails = ({ open, handleClose, customer, customerId }) => {
                 <ListItemIcon>
                   <HomeIcon />
                 </ListItemIcon>
-                <ListItemText primary={customerData?.userAddress} />
+                <ListItemText primary={ customerData?.userAddress } />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
                   <NoteIcon />
                 </ListItemIcon>
-                <ListItemText primary={customerData?.userNote} />
+                <ListItemText primary={ customerData?.userNote } />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
                   <SourceIcon />
                 </ListItemIcon>
-                <ListItemText primary={customerData?.source} />
+                <ListItemText primary={ customerData?.source } />
               </ListItem>
             </List>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleClose} color="primary">
+            <Button onClick={ handleClose } color="primary">
               Quitter
             </Button>
           </DialogActions>
         </>
-      )}
+      ) }
     </Dialog>
   );
 };

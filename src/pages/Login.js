@@ -1,19 +1,21 @@
 // src/pages/Login.js
-import React, { useState, useEffect } from "react";
-import {
-  Button,
-  TextField,
-  Box,
-  Typography,
-  CircularProgress,
-  Paper,
-  Avatar,
-} from "@mui/material";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import { useAuth } from "../contexts/AuthContext";
-import { useSnackbar } from "notistack";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { useSnackbar } from "notistack";
+
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import {
+  Avatar,
+  Box,
+  Button,
+  CircularProgress,
+  Paper,
+  TextField,
+  Typography
+} from "@mui/material";
+
+import { useAuth } from "../contexts/AuthContext";
 
 const Login = () => {
   const { login, currentUser } = useAuth();
@@ -29,7 +31,7 @@ const Login = () => {
     }
   }, [currentUser, navigate]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     setLoading(true);
     try {
@@ -37,7 +39,7 @@ const Login = () => {
       enqueueSnackbar("Logged in successfully", { variant: "success" });
     } catch (error) {
       enqueueSnackbar("Failed to log in: " + error.message, {
-        variant: "error",
+        variant: "error"
       });
     }
     setLoading(false);
@@ -52,7 +54,7 @@ const Login = () => {
       height="100vh"
       bgcolor="#f5f5f5"
     >
-      <Paper elevation={3} sx={{ padding: 4, maxWidth: 400 }}>
+      <Paper elevation={ 3 } sx={ { padding: 4, maxWidth: 400 } }>
         <Box display="flex" flexDirection="column" alignItems="center">
           <Typography variant="h3" gutterBottom>
             Ez Presta
@@ -61,22 +63,22 @@ const Login = () => {
             la gestion simplifiée de votre entreprise
           </Typography>
 
-          <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
+          <Avatar sx={ { m: 1, bgcolor: "secondary.main" } }>
             <LockOutlinedIcon />
           </Avatar>
           <Typography variant="h6" gutterBottom>
             Se connecter à Ez Presta
           </Typography>
         </Box>
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+        <Box component="form" onSubmit={ handleSubmit } sx={ { mt: 1 } }>
           <TextField
             margin="normal"
             required
             fullWidth
             label="Email"
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={ email }
+            onChange={ e => setEmail(e.target.value) }
             autoComplete="email"
           />
           <TextField
@@ -85,8 +87,8 @@ const Login = () => {
             fullWidth
             label="Mot de passe"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={ password }
+            onChange={ e => setPassword(e.target.value) }
             autoComplete="current-password"
           />
           <Button
@@ -94,16 +96,16 @@ const Login = () => {
             fullWidth
             variant="contained"
             color="primary"
-            sx={{ mt: 3, mb: 2, bgcolor: "#d32f2f" }}
-            disabled={loading}
+            sx={ { mt: 3, mb: 2, bgcolor: "#d32f2f" } }
+            disabled={ loading }
           >
-            {loading ? <CircularProgress size={24} /> : "SE CONNECTER"}
+            { loading ? <CircularProgress size={ 24 } /> : "SE CONNECTER" }
           </Button>
           <Link to="/register">
             <Button
               fullWidth
               variant="contained"
-              sx={{ mt: 1, mb: 2, bgcolor: "#388e3c" }}
+              sx={ { mt: 1, mb: 2, bgcolor: "#388e3c" } }
             >
               CRÉER VOTRE COMPTE
             </Button>

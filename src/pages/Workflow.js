@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
+
 import WorkflowList from "../components/WorkflowList";
-import WorkflowForm from "../components/WorkflowForm";
 
 const Workflow = () => {
   const [selectedWorkflow, setSelectedWorkflow] = useState(null);
 
-  const handleEditWorkflow = (workflow) => {
+  const handleEditWorkflow = workflow => {
     setSelectedWorkflow(workflow);
   };
 
@@ -15,7 +15,7 @@ const Workflow = () => {
 
   return (
     <div>
-      <WorkflowList onEdit={handleEditWorkflow} />
+      <WorkflowList onEdit={ handleEditWorkflow } />
     </div>
   );
 };

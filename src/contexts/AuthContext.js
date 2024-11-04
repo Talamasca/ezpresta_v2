@@ -1,13 +1,15 @@
 // src/contexts/AuthContext.js
-import React, { useContext, useState, useEffect } from "react";
-import { auth, db } from "../firebase";
+import React, { useContext, useEffect, useState } from "react";
+
 import {
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
   onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut
 } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+
+import { auth, db } from "../firebase";
 
 const AuthContext = React.createContext();
 
@@ -25,7 +27,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = (email, password) => {
     return signInWithEmailAndPassword(auth, email, password).then(
-      (userCredential) => {
+      userCredential => {
         // Fetch user data from Firestore
         const user = userCredential.user;
         return getUserData(user.uid);
@@ -39,7 +41,7 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(null);
   };
 
-  const getUserData = async (uid) => {
+  const getUserData = async uid => {
     const docRef = doc(db, "users", uid);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
@@ -58,7 +60,7 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(JSON.parse(storedUserData));
       setLoading(false);
     } else {
-      const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      const unsubscribe = onAuthStateChanged(auth, async user => {
         if (user) {
           await getUserData(user.uid);
         } else {
@@ -71,7 +73,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const updateUserData = async (newData) => {
+  const updateUserData = async newData => {
     if (currentUser) {
       const userDoc = doc(db, `users/${currentUser.uid}`);
       await updateDoc(userDoc, newData);
@@ -84,12 +86,12 @@ export const AuthProvider = ({ children }) => {
     updateUserData,
     signup,
     login,
-    logout,
+    logout
   };
 
   return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
+    <AuthContext.Provider value={ value }>
+      { !loading && children }
     </AuthContext.Provider>
   );
 };

@@ -1,24 +1,26 @@
 // src/components/CustomerForm.js
-import React, { useState, useEffect } from "react";
-import { useAuth } from "../contexts/AuthContext";
 
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Box,
-  CircularProgress,
-  Grid,
-  Select,
-  MenuItem,
-} from "@mui/material";
-import { doc, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
+import React, { useEffect, useState } from "react";
 import { useSnackbar } from "notistack";
 import validator from "validator";
+
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  MenuItem,
+  Select,
+  TextField
+} from "@mui/material";
+import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
+
+import { useAuth } from "../contexts/AuthContext";
+import { db } from "../firebase";
 
 const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
   const { currentUser } = useAuth();
@@ -35,7 +37,7 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
     userNote: "",
     company: "",
     source: "",
-    sourceOther: "",
+    sourceOther: ""
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -53,7 +55,7 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
         userNote: "",
         company: "",
         source: "",
-        sourceOther: "",
+        sourceOther: ""
       });
     } else {
       // Charger les données du client existant
@@ -79,9 +81,9 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
           `users/${userId}/customerSource`
         );
         const sourcesSnapshot = await getDocs(sourcesCollection);
-        const sourcesList = sourcesSnapshot.docs.map((doc) => ({
+        const sourcesList = sourcesSnapshot.docs.map(doc => ({
           id: doc.id,
-          name: doc.data().name,
+          name: doc.data().name
         }));
         setSources(sourcesList);
       }
@@ -90,22 +92,22 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
     fetchSources();
   }, [userId]);
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
+    setFormData(prevData => ({
       ...prevData,
-      [name]: value,
+      [name]: value
     }));
     // Clear errors on change
-    setErrors((prevErrors) => ({
+    setErrors(prevErrors => ({
       ...prevErrors,
-      [name]: "",
+      [name]: ""
     }));
     //
-    setFormData((prevData) => ({
+    setFormData(prevData => ({
       ...prevData,
       [name]: value,
-      sourceOther: value === "other" ? prevData.sourceOther : "",
+      sourceOther: value === "other" ? prevData.sourceOther : ""
     }));
   };
 
@@ -140,7 +142,7 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
       try {
         await setDoc(customerRef, formData, { merge: true });
         enqueueSnackbar("Client sauvegardé avec succès", {
-          variant: "success",
+          variant: "success"
         });
 
         // Créer le nouveau client
@@ -151,7 +153,7 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
         handleClose(); // Fermer le formulaire
       } catch (error) {
         enqueueSnackbar("Erreur lors de la sauvegarde : " + error.message, {
-          variant: "error",
+          variant: "error"
         });
       } finally {
         setLoading(false);
@@ -173,27 +175,27 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+    <Dialog open={ open } onClose={ handleClose } maxWidth="md" fullWidth>
       <DialogTitle>
-        {customerId ? "Edit Customer" : "Create Customer"}
+        { customerId ? "Edit Customer" : "Create Customer" }
       </DialogTitle>
       <DialogContent>
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+        <Box component="form" onSubmit={ handleSubmit } sx={ { mt: 2 } }>
+          <Grid container spacing={ 2 }>
+            <Grid item xs={ 12 } sm={ 6 }>
               <TextField
                 margin="normal"
                 required
                 fullWidth
                 label="First Name"
                 name="firstname"
-                value={formData.firstname}
-                onChange={handleChange}
-                sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
-                helperText={errors["firstname"]}
+                value={ formData.firstname }
+                onChange={ handleChange }
+                sx={ { "& .MuiInputBase-input": { fontSize: "16px" } } }
+                helperText={ errors["firstname"] }
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={ 12 } sm={ 6 }>
               <TextField
                 margin="normal"
                 required
@@ -201,13 +203,13 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
                 label="Email"
                 name="email"
                 type="email"
-                value={formData.email}
-                onChange={handleChange}
-                sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
-                helperText={errors["email"]}
+                value={ formData.email }
+                onChange={ handleChange }
+                sx={ { "& .MuiInputBase-input": { fontSize: "16px" } } }
+                helperText={ errors["email"] }
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={ 12 } sm={ 6 }>
               <TextField
                 margin="normal"
                 required
@@ -215,86 +217,86 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
                 label="Phone"
                 name="phone"
                 type="tel"
-                value={formData.phone}
-                onChange={handleChange}
-                sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
-                helperText={errors["phone"]}
+                value={ formData.phone }
+                onChange={ handleChange }
+                sx={ { "& .MuiInputBase-input": { fontSize: "16px" } } }
+                helperText={ errors["phone"] }
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={ 12 } sm={ 6 }>
               <TextField
                 margin="normal"
                 fullWidth
                 label="Company"
                 name="company"
-                value={formData.company}
-                onChange={handleChange}
-                sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
+                value={ formData.company }
+                onChange={ handleChange }
+                sx={ { "& .MuiInputBase-input": { fontSize: "16px" } } }
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={ 12 }>
               <TextField
                 margin="normal"
                 fullWidth
                 label="Address"
                 name="userAddress"
-                value={formData.userAddress}
-                onChange={handleChange}
-                sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
+                value={ formData.userAddress }
+                onChange={ handleChange }
+                sx={ { "& .MuiInputBase-input": { fontSize: "16px" } } }
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={ 12 }>
               <TextField
                 margin="normal"
                 fullWidth
                 label="Note"
                 name="userNote"
-                value={formData.userNote}
-                onChange={handleChange}
-                sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
+                value={ formData.userNote }
+                onChange={ handleChange }
+                sx={ { "& .MuiInputBase-input": { fontSize: "16px" } } }
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={ 12 } sm={ 6 }>
               <Select
                 margin="normal"
                 fullWidth
                 label="Source"
                 name="source"
-                value={formData.source}
-                onChange={handleChange}
+                value={ formData.source }
+                onChange={ handleChange }
                 displayEmpty
               >
                 <MenuItem value="" disabled>
                   Sélectionner une provenance
                 </MenuItem>
-                {sources.map((source) => (
-                  <MenuItem key={source.id} value={source.name}>
-                    {source.name}
+                { sources.map(source => (
+                  <MenuItem key={ source.id } value={ source.name }>
+                    { source.name }
                   </MenuItem>
-                ))}
+                )) }
                 <MenuItem value="other">Autre</MenuItem>
               </Select>
 
-              {formData.source === "other" && (
+              { formData.source === "other" && (
                 <TextField
                   margin="normal"
                   fullWidth
                   label="Source (Autre)"
                   name="sourceOther"
-                  value={formData.sourceOther}
-                  onChange={handleChange}
-                  sx={{ "& .MuiInputBase-input": { fontSize: "16px" } }}
+                  value={ formData.sourceOther }
+                  onChange={ handleChange }
+                  sx={ { "& .MuiInputBase-input": { fontSize: "16px" } } }
                 />
-              )}
+              ) }
             </Grid>
           </Grid>
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="secondary">
+        <Button onClick={ handleClose } color="secondary">
           Cancel
         </Button>
-        <Button onClick={handleSubmit} color="primary" disabled={loading}>
+        <Button onClick={ handleSubmit } color="primary" disabled={ loading }>
           Save
         </Button>
       </DialogActions>

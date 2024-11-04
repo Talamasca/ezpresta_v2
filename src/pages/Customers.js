@@ -1,33 +1,35 @@
 // src/pages/Customers.js
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import { db } from "../firebase";
-import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
+import { useSnackbar } from "notistack";
+
+import { Add as AddIcon, Delete, Edit } from "@mui/icons-material";
+import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import {
+  Box,
+  CircularProgress,
+  Fab,
+  IconButton,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  CircularProgress,
-  Typography,
-  Box,
-  IconButton,
-  Fab,
+  Typography
 } from "@mui/material";
-import { useSnackbar } from "notistack";
-import { parsePhoneNumberFromString } from "libphonenumber-js";
-import CustomerDetails from "../components/CustomerDetails";
 import Avatar from "@mui/material/Avatar";
-import AccountBoxIcon from "@mui/icons-material/AccountBox";
-import { Delete, Edit, Add as AddIcon } from "@mui/icons-material";
+import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
+
+import CustomerDetails from "../components/CustomerDetails";
 import CustomerForm from "../components/CustomerForm";
+import { useAuth } from "../contexts/AuthContext";
+import { db } from "../firebase";
 
 //import "./Customers.css";
 
-const formatPhoneNumber = (phoneNumber) => {
+const formatPhoneNumber = phoneNumber => {
   if (!phoneNumber) return "";
   const phoneNumberParsed = parsePhoneNumberFromString(phoneNumber, "FR");
   if (phoneNumberParsed) {
@@ -36,7 +38,7 @@ const formatPhoneNumber = (phoneNumber) => {
   return phoneNumber;
 };
 
-const phoneGetURI = (phoneNumber) => {
+const phoneGetURI = phoneNumber => {
   if (!phoneNumber) return "";
   const phoneNumberParsed = parsePhoneNumberFromString(phoneNumber, "FR");
   if (phoneNumberParsed) {
@@ -64,16 +66,16 @@ const Customers = () => {
             `users/${currentUser.uid}/customers`
           );
           const snapshot = await getDocs(customersRef);
-          const customersList = snapshot.docs.map((doc) => ({
+          const customersList = snapshot.docs.map(doc => ({
             id: doc.id,
-            ...doc.data(),
+            ...doc.data()
           }));
 
           setCustomers(customersList);
           setLoading(false);
         } catch (error) {
           enqueueSnackbar("Error fetching customers: " + error.message, {
-            variant: "error",
+            variant: "error"
           });
           setLoading(false);
         }
@@ -107,29 +109,29 @@ const Customers = () => {
     setSelectedCustomerId(null);
   };
 
-  const handleSaveCustomer = (newCustomer) => {
-    setCustomers((prevCustomers) =>
-      prevCustomers.some((customer) => customer.id === newCustomer.id)
-        ? prevCustomers.map((customer) =>
-            customer.id === newCustomer.id ? newCustomer : customer
-          )
+  const handleSaveCustomer = newCustomer => {
+    setCustomers(prevCustomers =>
+      prevCustomers.some(customer => customer.id === newCustomer.id)
+        ? prevCustomers.map(customer =>
+          customer.id === newCustomer.id ? newCustomer : customer
+        )
         : [...prevCustomers, newCustomer]
     );
     handleCloseForm();
   };
 
-  const handleDeleteCustomer = async (customerId) => {
+  const handleDeleteCustomer = async customerId => {
     try {
       await deleteDoc(
         doc(db, `users/${currentUser.uid}/customers`, customerId)
       );
-      setCustomers(customers.filter((customer) => customer.id !== customerId));
+      setCustomers(customers.filter(customer => customer.id !== customerId));
       enqueueSnackbar("Ce compte client a bien été effacé", {
-        variant: "success",
+        variant: "success"
       });
     } catch (error) {
       enqueueSnackbar("Error deleting customer: " + error.message, {
-        variant: "error",
+        variant: "error"
       });
     }
   };
@@ -137,12 +139,12 @@ const Customers = () => {
   if (loading) {
     return (
       <Box
-        sx={{
+        sx={ {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          height: "100vh",
-        }}
+          height: "100vh"
+        } }
       >
         <CircularProgress />
       </Box>
@@ -153,21 +155,21 @@ const Customers = () => {
     <>
       <Typography
         variant="h4"
-        sx={{
-          margin: (theme) => theme.spacing(4, 0, 2),
+        sx={ {
+          margin: theme => theme.spacing(4, 0, 2),
           textAlign: "center",
-          fontWeight: "bold",
-        }}
+          fontWeight: "bold"
+        } }
       >
         Liste des clients
       </Typography>
       <TableContainer
-        component={Paper}
-        sx={{
-          marginTop: (theme) => theme.spacing(4),
-        }}
+        component={ Paper }
+        sx={ {
+          marginTop: theme => theme.spacing(4)
+        } }
       >
-        <Table sx={{ minWidth: 650 }}>
+        <Table sx={ { minWidth: 650 } }>
           <TableHead>
             <TableRow>
               <TableCell>Company</TableCell>
@@ -180,73 +182,73 @@ const Customers = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {customers.map((customer) => (
-              <TableRow key={customer.id}>
-                <TableCell sx={{ padding: (theme) => theme.spacing(2) }}>
-                  {customer.company}
+            { customers.map(customer => (
+              <TableRow key={ customer.id }>
+                <TableCell sx={ { padding: theme => theme.spacing(2) } }>
+                  { customer.company }
                 </TableCell>
-                <TableCell sx={{ padding: (theme) => theme.spacing(2) }}>
-                  {customer.email}
+                <TableCell sx={ { padding: theme => theme.spacing(2) } }>
+                  { customer.email }
                 </TableCell>
-                <TableCell sx={{ padding: (theme) => theme.spacing(2) }}>
-                  {customer.firstname}
+                <TableCell sx={ { padding: theme => theme.spacing(2) } }>
+                  { customer.firstname }
                 </TableCell>
-                <TableCell sx={{ padding: (theme) => theme.spacing(2) }}>
-                  <a href={phoneGetURI(customer?.phone)}>
-                    {formatPhoneNumber(customer?.phone)}
+                <TableCell sx={ { padding: theme => theme.spacing(2) } }>
+                  <a href={ phoneGetURI(customer?.phone) }>
+                    { formatPhoneNumber(customer?.phone) }
                   </a>
                 </TableCell>
-                <TableCell sx={{ padding: (theme) => theme.spacing(2) }}>
-                  {customer.userAddress}
+                <TableCell sx={ { padding: theme => theme.spacing(2) } }>
+                  { customer.userAddress }
                 </TableCell>
-                <TableCell sx={{ padding: (theme) => theme.spacing(2) }}>
-                  {customer.userNote}
+                <TableCell sx={ { padding: theme => theme.spacing(2) } }>
+                  { customer.userNote }
                 </TableCell>
-                <TableCell sx={{ padding: (theme) => theme.spacing(2) }}>
+                <TableCell sx={ { padding: theme => theme.spacing(2) } }>
                   <IconButton
-                    onClick={() => handleOpenDialog(customer, customer.id)}
+                    onClick={ () => handleOpenDialog(customer, customer.id) }
                   >
                     <AccountBoxIcon />
                   </IconButton>
                   <IconButton
-                    onClick={() => handleOpenForm(customer, customer.id)}
+                    onClick={ () => handleOpenForm(customer, customer.id) }
                   >
                     <Edit />
                   </IconButton>
-                  <IconButton onClick={() => handleDeleteCustomer(customer.id)}>
+                  <IconButton onClick={ () => handleDeleteCustomer(customer.id) }>
                     <Delete />
                   </IconButton>
                 </TableCell>
               </TableRow>
-            ))}
+            )) }
           </TableBody>
         </Table>
       </TableContainer>
 
       <CustomerDetails
-        open={dialogOpen}
-        handleClose={handleCloseDialog}
-        customer={selectedCustomer}
-        customerId={selectedCustomerId}
+        open={ dialogOpen }
+        handleClose={ handleCloseDialog }
+        customer={ selectedCustomer }
+        customerId={ selectedCustomerId }
       />
 
       <CustomerForm
-        open={formOpen}
-        handleClose={handleCloseForm}
-        customer={selectedCustomer}
-        customerId={selectedCustomerId}
-        userId={currentUser.uid}
-        onSave={handleSaveCustomer}
+        open={ formOpen }
+        handleClose={ handleCloseForm }
+        customer={ selectedCustomer }
+        customerId={ selectedCustomerId }
+        userId={ currentUser.uid }
+        onSave={ handleSaveCustomer }
       />
 
       <Fab
         variant="extended"
         color="primary"
         aria-label="add"
-        sx={{
+        sx={ {
           position: "fixed",
-          bottom: (theme) => theme.spacing(2),
-          right: (theme) => theme.spacing(2),
+          bottom: theme => theme.spacing(2),
+          right: theme => theme.spacing(2),
           width: 58,
           overflow: "hidden",
           whiteSpace: "nowrap",
@@ -256,13 +258,13 @@ const Customers = () => {
           "&:hover": {
             fontSize: 15,
             width: 300,
-            borderRadius: 15,
-          },
-        }}
-        onClick={() => handleOpenForm(null, null)}
+            borderRadius: 15
+          }
+        } }
+        onClick={ () => handleOpenForm(null, null) }
       >
         <AddIcon
-          sx={{ marginRight: (theme) => theme.spacing(1), fontSize: 32 }}
+          sx={ { marginRight: theme => theme.spacing(1), fontSize: 32 } }
         />
         Ajouter un contact
       </Fab>

@@ -1,53 +1,55 @@
 import React, { useEffect, useState } from "react";
+import { useSnackbar } from "notistack";
+
+import AccountBoxIcon from "@mui/icons-material/AccountBox";
+//import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import DeleteIcon from "@mui/icons-material/Delete"; // Import de l'icône de suppression
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import MapIcon from "@mui/icons-material/Map";
 import {
-  collection,
-  query,
-  getDocs,
-  doc,
-  getDoc,
-  updateDoc,
-  orderBy,
-} from "firebase/firestore";
-import { db } from "../firebase"; // Firebase Firestore instance
-import { getFunctions, httpsCallable } from "firebase/functions"; // Import correct des fonctions Firebase
-import { useAuth } from "../contexts/AuthContext"; // Pour récupérer l'utilisateur connecté
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle
+} from "@mui/material";
 import {
+  Box,
+  Collapse,
+  IconButton,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  IconButton,
-  Collapse,
-  Box,
-  Tooltip,
+  Tooltip
 } from "@mui/material";
-import AccountBoxIcon from "@mui/icons-material/AccountBox";
-import MapIcon from "@mui/icons-material/Map";
-//import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import CustomerDetails from "../components/CustomerDetails";
-import { useSnackbar } from "notistack";
 import { deleteDoc } from "firebase/firestore";
 import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Button,
-} from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete"; // Import de l'icône de suppression
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  updateDoc
+} from "firebase/firestore";
+import { getFunctions, httpsCallable } from "firebase/functions"; // Import correct des fonctions Firebase
+
+import CustomerDetails from "../components/CustomerDetails";
+import CancelReservation from "../components/ReservationCanceled";
 import ReservationICS from "../components/ReservationICS"; // Import du composant BookingIcal
+import PaymentManagement from "../components/ReservationPaymentManagement";
+import PDFInvoiceGenerator from "../components/ReservationPDF";
 import ReservationTodo from "../components/ReservationTodo";
 import ReservationUpload from "../components/ReservationUpload";
-import PDFInvoiceGenerator from "../components/ReservationPDF";
-import CancelReservation from "../components/ReservationCanceled";
 import ValidateReservation from "../components/ReservationValidate";
-import PaymentManagement from "../components/ReservationPaymentManagement";
+import { useAuth } from "../contexts/AuthContext"; // Pour récupérer l'utilisateur connecté
+import { db } from "../firebase"; // Firebase Firestore instance
 
 const Agenda = () => {
   const { currentUser } = useAuth();
@@ -59,7 +61,7 @@ const Agenda = () => {
   const { enqueueSnackbar } = useSnackbar();
 
   // Fonction pour récupérer les informations supplémentaires (catalogue et client)
-  const fetchAdditionalData = async (reservation) => {
+  const fetchAdditionalData = async reservation => {
     try {
       const catalogRef = doc(
         db,
@@ -84,7 +86,7 @@ const Agenda = () => {
       return {
         ...reservation,
         productType,
-        clientName,
+        clientName
       };
     } catch (error) {
       console.error(
@@ -108,7 +110,7 @@ const Agenda = () => {
         for (const doc of querySnapshot.docs) {
           const reservation = {
             id: doc.id,
-            ...doc.data(),
+            ...doc.data()
           };
           const enhancedReservation = await fetchAdditionalData(reservation);
           reservationsData.push(enhancedReservation);
@@ -130,7 +132,7 @@ const Agenda = () => {
   const handleValidateReservation = async (reservationId, reservation) => {
     if (reservation.orderIsConfirmed) {
       enqueueSnackbar("Cette prestation est déjà validée.", {
-        variant: "info",
+        variant: "info"
       });
       return;
     }
@@ -143,7 +145,7 @@ const Agenda = () => {
       );
       await updateDoc(orderRef, {
         orderIsConfirmed: true,
-        orderIsConfirmedDate: new Date().toISOString(),
+        orderIsConfirmedDate: new Date().toISOString()
       });
 
       // Envoi d'un e-mail via Firebase Functions
@@ -162,42 +164,42 @@ const Agenda = () => {
           year: "numeric",
           month: "long",
           day: "numeric",
-          weekday: "long",
-        }),
+          weekday: "long"
+        })
       });
 
       enqueueSnackbar("Prestation validée et e-mail envoyé.", {
-        variant: "success",
+        variant: "success"
       });
 
       // Mise à jour de l'état local
-      const updatedReservations = reservations.map((r) =>
+      const updatedReservations = reservations.map(r =>
         r.id === reservationId ? { ...r, orderIsConfirmed: true } : r
       );
       setReservations(updatedReservations);
     } catch (error) {
       enqueueSnackbar("Erreur lors de la validation de la prestation.", {
-        variant: "error",
+        variant: "error"
       });
     }
   };
 
   // Calcul des événements pour le calendrier
-  const calculateEvent = (reservation) => ({
+  const calculateEvent = reservation => ({
     title: `EzPresta : ${reservation.productType} - ${reservation.clientName}`,
     description: `Prestation avec ${reservation.clientName}`,
     startTime: reservation.selectedDate,
     endTime: new Date(
       new Date(reservation.selectedDate).getTime() + 8 * 60 * 60 * 1000
     ), // Durée de 8 heures
-    location: reservation.locations[0]?.locationWhere || "Lieu non défini",
+    location: reservation.locations[0]?.locationWhere || "Lieu non défini"
   });
 
   // Fonction pour supprimer une réservation
   const handleDeleteReservation = async (reservationId, reservation) => {
     if (reservation.orderIsConfirmed) {
       enqueueSnackbar("Vous ne pouvez pas effacer une prestation validée", {
-        variant: "error",
+        variant: "error"
       });
       return;
     }
@@ -211,12 +213,12 @@ const Agenda = () => {
       await deleteDoc(orderRef); // Supprime la réservation dans Firestore
 
       enqueueSnackbar("La prestation a bien été effacée", {
-        variant: "success",
+        variant: "success"
       });
 
       // Mettre à jour l'état local en supprimant la réservation effacée
       const updatedReservations = reservations.filter(
-        (r) => r.id !== reservationId
+        r => r.id !== reservationId
       );
       setReservations(updatedReservations);
     } catch (error) {
@@ -228,7 +230,7 @@ const Agenda = () => {
   const [openDialog, setOpenDialog] = useState(false); // État pour gérer l'ouverture de la boîte de dialogue
   const [reservationToDelete, setReservationToDelete] = useState(null); // Garde la réservation à supprimer
 
-  const handleOpenDialog = (reservation) => {
+  const handleOpenDialog = reservation => {
     setReservationToDelete(reservation);
     setOpenDialog(true); // Ouvre la boîte de dialogue
   };
@@ -246,7 +248,7 @@ const Agenda = () => {
   };
 
   // Fonction pour gérer l'ouverture de la boîte de dialogue de détails du client
-  const handleOpenCustomerDialog = async (customerId) => {
+  const handleOpenCustomerDialog = async customerId => {
     const clientRef = doc(db, `users/${currentUser.uid}/customers`, customerId);
     const clientSnap = await getDoc(clientRef);
     if (clientSnap.exists()) {
@@ -262,7 +264,7 @@ const Agenda = () => {
     setSelectedCustomerId(null);
   };
 
-  const toggleMenu = (id) => {
+  const toggleMenu = id => {
     setOpenMenuId(openMenuId === id ? null : id);
   };
 
@@ -270,7 +272,7 @@ const Agenda = () => {
     <div>
       <h1>Agenda des Réservations</h1>
 
-      <TableContainer component={Paper}>
+      <TableContainer component={ Paper }>
         <Table>
           <TableHead>
             <TableRow>
@@ -283,103 +285,103 @@ const Agenda = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {reservations.map((reservation) => (
-              <React.Fragment key={reservation.id}>
+            { reservations.map(reservation => (
+              <React.Fragment key={ reservation.id }>
                 <TableRow>
                   <TableCell>
                     <IconButton
                       aria-label="expand row"
                       size="small"
-                      onClick={() => toggleMenu(reservation.id)}
+                      onClick={ () => toggleMenu(reservation.id) }
                     >
-                      {openMenuId === reservation.id ? (
+                      { openMenuId === reservation.id ? (
                         <KeyboardArrowUpIcon />
                       ) : (
                         <KeyboardArrowDownIcon />
-                      )}
+                      ) }
                     </IconButton>
                   </TableCell>
-                  <TableCell>{reservation.productType}</TableCell>
+                  <TableCell>{ reservation.productType }</TableCell>
                   <TableCell>
-                    {new Date(reservation.selectedDate).toLocaleString(
+                    { new Date(reservation.selectedDate).toLocaleString(
                       "fr-FR",
                       {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
-                        weekday: "long",
+                        weekday: "long"
                       }
-                    )}
+                    ) }
                   </TableCell>
                   <TableCell>
-                    {reservation.clientName}
+                    { reservation.clientName }
                     <IconButton
-                      onClick={() =>
+                      onClick={ () =>
                         handleOpenCustomerDialog(reservation.client_id)
                       }
                     >
                       <AccountBoxIcon />
                     </IconButton>
                   </TableCell>
-                  <TableCell>{reservation.totalPrice} €</TableCell>
+                  <TableCell>{ reservation.totalPrice } €</TableCell>
                   <TableCell>
-                    {reservation.locations && reservation.locations.length > 0
+                    { reservation.locations && reservation.locations.length > 0
                       ? reservation.locations[0].locationWhere.slice(0, 60) ||
                         "Lieu non défini"
-                      : "Lieu non défini"}
-                    {reservation.locations &&
+                      : "Lieu non défini" }
+                    { reservation.locations &&
                       reservation.locations[0]?.place_id && (
                         <IconButton
-                          component="a"
-                          href={`https://www.google.com/maps/place/?q=place_id:${reservation.locations[0].place_id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <MapIcon />
-                        </IconButton>
-                      )}
+                        component="a"
+                        href={ `https://www.google.com/maps/place/?q=place_id:${reservation.locations[0].place_id}` }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MapIcon />
+                      </IconButton>
+                    ) }
                   </TableCell>
                 </TableRow>
 
-                {/* Menu d'actions */}
+                { /* Menu d'actions */ }
                 <TableRow>
                   <TableCell
-                    style={{ paddingBottom: 0, paddingTop: 0 }}
-                    colSpan={6}
+                    style={ { paddingBottom: 0, paddingTop: 0 } }
+                    colSpan={ 6 }
                   >
                     <Collapse
-                      in={openMenuId === reservation.id}
+                      in={ openMenuId === reservation.id }
                       timeout="auto"
                       unmountOnExit
                     >
-                      <Box margin={1}>
-                        <div style={{ textAlign: "center" }}>
+                      <Box margin={ 1 }>
+                        <div style={ { textAlign: "center" } }>
                           
                           <span>
-                            <ValidateReservation reservation={reservation} />
+                            <ValidateReservation reservation={ reservation } />
                           </span>
                           
                           <span aria-label="Annulation de la réservation">
-                            <CancelReservation reservation={reservation} />
+                            <CancelReservation reservation={ reservation } />
                           </span>
 
                           <span aria-label="Calendrier">
-                            {/* Export ICS*/}
-                            <ReservationICS reservation={reservation} />
+                            { /* Export ICS*/ }
+                            <ReservationICS reservation={ reservation } />
                           </span>
                           <span aria-label="Gestion des paiements">
-                            <PaymentManagement reservation={reservation} />
+                            <PaymentManagement reservation={ reservation } />
                           </span>
                           <span aria-label="Todo list">
-                            {/* Export TODO */}
-                            <ReservationTodo reservation={reservation} />
+                            { /* Export TODO */ }
+                            <ReservationTodo reservation={ reservation } />
                           </span>
                           <span aria-label="Todo list">
-                            {/* Export TODO */}
-                            <ReservationUpload reservation={reservation} />
+                            { /* Export TODO */ }
+                            <ReservationUpload reservation={ reservation } />
                           </span>
                           <span>
-                            <PDFInvoiceGenerator reservation={reservation} />
+                            <PDFInvoiceGenerator reservation={ reservation } />
                           </span>
                           <Tooltip
                             title={
@@ -390,12 +392,12 @@ const Agenda = () => {
                           >
                             <span>
                               <IconButton
-                                onClick={() =>
+                                onClick={ () =>
                                   reservation.orderIsConfirmed
                                     ? enqueueSnackbar(
-                                        "Vous ne pouvez pas effacer une prestation validée",
-                                        { variant: "error" }
-                                      )
+                                      "Vous ne pouvez pas effacer une prestation validée",
+                                      { variant: "error" }
+                                    )
                                     : handleOpenDialog(reservation)
                                 }
                               >
@@ -415,28 +417,28 @@ const Agenda = () => {
                   </TableCell>
                 </TableRow>
               </React.Fragment>
-            ))}
+            )) }
           </TableBody>
         </Table>
       </TableContainer>
 
-      {/* Boîte de dialogue pour les détails du client */}
+      { /* Boîte de dialogue pour les détails du client */ }
       <CustomerDetails
-        open={dialogOpen}
-        handleClose={handleCloseCustomerDialog}
-        customer={selectedCustomer}
-        customerId={selectedCustomerId}
+        open={ dialogOpen }
+        handleClose={ handleCloseCustomerDialog }
+        customer={ selectedCustomer }
+        customerId={ selectedCustomerId }
       />
 
-      {/* Boîte de dialogue de confirmation de suppression */}
+      { /* Boîte de dialogue de confirmation de suppression */ }
       <Dialog
-        open={openDialog}
-        onClose={handleCloseDialog}
+        open={ openDialog }
+        onClose={ handleCloseDialog }
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
         <DialogTitle id="alert-dialog-title">
-          {"Confirmation de suppression"}
+          { "Confirmation de suppression" }
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
@@ -446,10 +448,10 @@ const Agenda = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog} color="primary">
+          <Button onClick={ handleCloseDialog } color="primary">
             Annuler
           </Button>
-          <Button onClick={confirmDelete} color="secondary" autoFocus>
+          <Button onClick={ confirmDelete } color="secondary" autoFocus>
             Confirmer
           </Button>
         </DialogActions>

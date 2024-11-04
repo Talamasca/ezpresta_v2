@@ -1,22 +1,24 @@
 // src/components/ProductForm.js
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useSnackbar } from "notistack";
+
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Box,
   Button,
-  TextField,
+  Checkbox,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
   Grid,
   MenuItem,
-  Checkbox,
-  FormControlLabel,
-  Box,
-  CircularProgress,
+  TextField
 } from "@mui/material";
-import { doc, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
+
 import { db } from "../firebase";
-import { useSnackbar } from "notistack";
 import { getDuration, getFormattedDuration } from "../utils";
 
 const colors = [
@@ -27,7 +29,7 @@ const colors = [
   { name: "Noir", value: "#000000" },
   { name: "Orange", value: "#ffa500" },
   { name: "Jaune", value: "#ffff00" },
-  { name: "Violet", value: "#800080" },
+  { name: "Violet", value: "#800080" }
 ];
 
 const ProductForm = ({ open, handleClose, productId, userId, onSave }) => {
@@ -42,7 +44,7 @@ const ProductForm = ({ open, handleClose, productId, userId, onSave }) => {
     payableOnline: false,
     bookableOnline: false,
     payableInInstallments: false,
-    payableInInstallments2x: false,
+    payableInInstallments2x: false
   });
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -70,7 +72,7 @@ const ProductForm = ({ open, handleClose, productId, userId, onSave }) => {
           payableOnline: false,
           bookableOnline: false,
           payableInInstallments: false,
-          payableInInstallments2x: false,
+          payableInInstallments2x: false
         });
       }
     };
@@ -79,9 +81,9 @@ const ProductForm = ({ open, handleClose, productId, userId, onSave }) => {
       if (userId) {
         const categoriesRef = collection(db, `users/${userId}/categories`);
         const snapshot = await getDocs(categoriesRef);
-        const categoriesList = snapshot.docs.map((doc) => ({
+        const categoriesList = snapshot.docs.map(doc => ({
           id: doc.id,
-          ...doc.data(),
+          ...doc.data()
         }));
         setCategories(categoriesList);
       }
@@ -91,15 +93,15 @@ const ProductForm = ({ open, handleClose, productId, userId, onSave }) => {
     fetchCategories();
   }, [productId, userId]);
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value, type, checked } = e.target;
-    setFormData((prevData) => ({
+    setFormData(prevData => ({
       ...prevData,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === "checkbox" ? checked : value
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     if (userId) {
       setLoading(true);
@@ -116,7 +118,7 @@ const ProductForm = ({ open, handleClose, productId, userId, onSave }) => {
         handleClose();
       } catch (error) {
         enqueueSnackbar("Error saving product: " + error.message, {
-          variant: "error",
+          variant: "error"
         });
       } finally {
         setLoading(false);
@@ -138,111 +140,111 @@ const ProductForm = ({ open, handleClose, productId, userId, onSave }) => {
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+    <Dialog open={ open } onClose={ handleClose } maxWidth="md" fullWidth>
       <DialogTitle>
-        {productId ? "Modifier le produit" : "Ajouter un nouveau produit"}
+        { productId ? "Modifier le produit" : "Ajouter un nouveau produit" }
       </DialogTitle>
       <DialogContent>
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+        <Box component="form" onSubmit={ handleSubmit } sx={ { mt: 2 } }>
+          <Grid container spacing={ 2 }>
+            <Grid item xs={ 12 } sm={ 6 }>
               <TextField
                 select
                 label="Type"
                 name="type"
-                value={formData.type}
-                onChange={handleChange}
+                value={ formData.type }
+                onChange={ handleChange }
                 fullWidth
                 required
               >
-                {categories.map((category) => (
-                  <MenuItem key={category.id} value={category.name}>
-                    {category.name}
+                { categories.map(category => (
+                  <MenuItem key={ category.id } value={ category.name }>
+                    { category.name }
                   </MenuItem>
-                ))}
+                )) }
               </TextField>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={ 12 } sm={ 6 }>
               <TextField
                 label="Prix"
                 name="price"
                 type="number"
-                value={formData.price}
-                onChange={handleChange}
+                value={ formData.price }
+                onChange={ handleChange }
                 fullWidth
                 required
-                InputProps={{
-                  startAdornment: <span>€</span>,
-                }}
+                InputProps={ {
+                  startAdornment: <span>€</span>
+                } }
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={ 12 } sm={ 6 }>
               <TextField
                 label="Titre"
                 name="name"
-                value={formData.name}
-                onChange={handleChange}
+                value={ formData.name }
+                onChange={ handleChange }
                 fullWidth
                 required
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={ 12 } sm={ 6 }>
               <TextField
                 label="Description"
                 name="description"
-                value={formData.description}
-                onChange={handleChange}
+                value={ formData.description }
+                onChange={ handleChange }
                 fullWidth
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={ 12 } sm={ 6 }>
               <TextField
                 select
                 label="Durée"
                 name="duration"
-                value={getFormattedDuration(formData.duration)}
-                onChange={handleChange}
+                value={ getFormattedDuration(formData.duration) }
+                onChange={ handleChange }
                 fullWidth
               >
-                {getDuration().map((duration) => (
-                  <MenuItem key={duration.id} value={duration.name}>
-                    {duration.name}
+                { getDuration().map(duration => (
+                  <MenuItem key={ duration.id } value={ duration.name }>
+                    { duration.name }
                   </MenuItem>
-                ))}
+                )) }
               </TextField>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={ 12 } sm={ 6 }>
               <TextField
                 select
                 label="Couleur"
                 name="color"
-                value={formData.color}
-                onChange={handleChange}
+                value={ formData.color }
+                onChange={ handleChange }
                 fullWidth
               >
-                {colors.map((color) => (
-                  <MenuItem key={color.value} value={color.value}>
+                { colors.map(color => (
+                  <MenuItem key={ color.value } value={ color.value }>
                     <Box
                       component="span"
-                      sx={{
+                      sx={ {
                         display: "inline-block",
                         width: 20,
                         height: 20,
                         backgroundColor: color.value,
-                        marginRight: 1,
-                      }}
+                        marginRight: 1
+                      } }
                     />
-                    {color.name}
+                    { color.name }
                   </MenuItem>
-                ))}
+                )) }
               </TextField>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={ 12 }>
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={formData.payableOnline}
-                    onChange={handleChange}
+                    checked={ formData.payableOnline }
+                    onChange={ handleChange }
                     name="payableOnline"
                   />
                 }
@@ -251,8 +253,8 @@ const ProductForm = ({ open, handleClose, productId, userId, onSave }) => {
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={formData.bookableOnline}
-                    onChange={handleChange}
+                    checked={ formData.bookableOnline }
+                    onChange={ handleChange }
                     name="bookableOnline"
                   />
                 }
@@ -261,8 +263,8 @@ const ProductForm = ({ open, handleClose, productId, userId, onSave }) => {
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={formData.payableInInstallments}
-                    onChange={handleChange}
+                    checked={ formData.payableInInstallments }
+                    onChange={ handleChange }
                     name="payableInInstallments"
                   />
                 }
@@ -272,8 +274,8 @@ const ProductForm = ({ open, handleClose, productId, userId, onSave }) => {
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={formData.payableInInstallments2x}
-                    onChange={handleChange}
+                    checked={ formData.payableInInstallments2x }
+                    onChange={ handleChange }
                     name="payableInInstallments2x"
                   />
                 }
@@ -284,10 +286,10 @@ const ProductForm = ({ open, handleClose, productId, userId, onSave }) => {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="secondary">
+        <Button onClick={ handleClose } color="secondary">
           Annuler
         </Button>
-        <Button onClick={handleSubmit} color="primary" disabled={loading}>
+        <Button onClick={ handleSubmit } color="primary" disabled={ loading }>
           Valider
         </Button>
       </DialogActions>

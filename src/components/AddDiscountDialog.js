@@ -1,16 +1,17 @@
 import React, { useState } from "react";
+import { useSnackbar } from "notistack";
+
+import EuroIcon from "@mui/icons-material/Euro";
 import {
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  TextField,
-  Switch,
   FormControlLabel,
+  Switch,
+  TextField
 } from "@mui/material";
-import { useSnackbar } from "notistack";
-import EuroIcon from "@mui/icons-material/Euro";
 
 export default function AddDiscountDialog({ onAddDiscount }) {
   //const classes = useStyles();
@@ -23,22 +24,22 @@ export default function AddDiscountDialog({ onAddDiscount }) {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = e => {
     e.preventDefault();
     if (discountName && discountAmount) {
       const newDiscount = {
         discountName,
         discountAmount: parseFloat(discountAmount),
-        isPercentage,
+        isPercentage
       };
       onAddDiscount(newDiscount);
       enqueueSnackbar("La remise a été ajoutée avec succès", {
-        variant: "success",
+        variant: "success"
       });
       handleClose();
     } else {
       enqueueSnackbar("Veuillez remplir tous les champs", {
-        variant: "warning",
+        variant: "warning"
       });
     }
   };
@@ -48,30 +49,30 @@ export default function AddDiscountDialog({ onAddDiscount }) {
       <Button
         variant="outlined"
         color="primary"
-        onClick={handleOpen}
-        startIcon={<EuroIcon />}
+        onClick={ handleOpen }
+        startIcon={ <EuroIcon /> }
         size="small"
       >
         Ajouter une remise
       </Button>
 
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog open={ open } onClose={ handleClose }>
         <DialogTitle>Ajouter une remise</DialogTitle>
         <DialogContent>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={ handleSubmit }>
             <TextField
               id="discountName"
               label="Nom de la réduction"
-              value={discountName}
-              onChange={(e) => setDiscountName(e.target.value)}
+              value={ discountName }
+              onChange={ e => setDiscountName(e.target.value) }
               margin="normal"
               fullWidth
             />
             <TextField
               id="discountAmount"
-              label={`Montant de la remise (${isPercentage ? "%" : "€"})`}
-              value={discountAmount}
-              onChange={(e) => setDiscountAmount(e.target.value)}
+              label={ `Montant de la remise (${isPercentage ? "%" : "€"})` }
+              value={ discountAmount }
+              onChange={ e => setDiscountAmount(e.target.value) }
               margin="normal"
               type="number"
               fullWidth
@@ -79,8 +80,8 @@ export default function AddDiscountDialog({ onAddDiscount }) {
             <FormControlLabel
               control={
                 <Switch
-                  checked={isPercentage}
-                  onChange={() => setIsPercentage(!isPercentage)}
+                  checked={ isPercentage }
+                  onChange={ () => setIsPercentage(!isPercentage) }
                   color="primary"
                 />
               }
@@ -89,10 +90,10 @@ export default function AddDiscountDialog({ onAddDiscount }) {
           </form>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary">
+          <Button onClick={ handleClose } color="primary">
             Annuler
           </Button>
-          <Button onClick={handleSubmit} color="primary">
+          <Button onClick={ handleSubmit } color="primary">
             Valider
           </Button>
         </DialogActions>

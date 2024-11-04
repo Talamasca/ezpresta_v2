@@ -1,17 +1,19 @@
 // src/components/Header.js
 import React from "react";
+import { useNavigate } from "react-router-dom";
+
+import AccountCircle from "@mui/icons-material/AccountCircle";
 import {
   AppBar,
-  Toolbar,
-  Typography,
+  Box,
+  Button,
   IconButton,
   Switch,
-  Button,
-  Box,
+  Toolbar,
+  Typography
 } from "@mui/material";
-import AccountCircle from "@mui/icons-material/AccountCircle";
+
 import { useAuth } from "../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
 
 const Header = ({ toggleTheme, darkMode }) => {
   const { currentUser, logout } = useAuth();
@@ -29,33 +31,33 @@ const Header = ({ toggleTheme, darkMode }) => {
   return (
     <AppBar
       position="fixed"
-      sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+      sx={ { zIndex: theme => theme.zIndex.drawer + 1 } }
     >
       <Toolbar>
-        <Box display="flex" alignItems="center" sx={{ flexGrow: 1 }}>
+        <Box display="flex" alignItems="center" sx={ { flexGrow: 1 } }>
           <img
             src="path_to_logo"
             alt="EzPresta Logo"
-            style={{ height: 40, marginRight: 16 }}
+            style={ { height: 40, marginRight: 16 } }
           />
           <Typography variant="h6" component="div">
             EzPresta
           </Typography>
         </Box>
-        <Switch checked={darkMode} onChange={toggleTheme} />
-        {currentUser && (
+        <Switch checked={ darkMode } onChange={ toggleTheme } />
+        { currentUser && (
           <Box display="flex" alignItems="center">
-            <Typography variant="body1" component="div" sx={{ marginRight: 2 }}>
-              {currentUser.displayName || currentUser.email}
+            <Typography variant="body1" component="div" sx={ { marginRight: 2 } }>
+              { currentUser.displayName || currentUser.email }
             </Typography>
             <IconButton edge="end" color="inherit">
               <AccountCircle />
             </IconButton>
-            <Button color="inherit" onClick={handleLogout}>
+            <Button color="inherit" onClick={ handleLogout }>
               Déconnexion
             </Button>
           </Box>
-        )}
+        ) }
       </Toolbar>
     </AppBar>
   );

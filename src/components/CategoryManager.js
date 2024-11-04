@@ -1,40 +1,40 @@
 // src/components/CategoryManager.js
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useSnackbar } from "notistack";
+
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  Save as SaveIcon
+} from "@mui/icons-material";
+import {
+  Box,
   Button,
-  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  Fab,
-  Box,
+  TextField
 } from "@mui/material";
 import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Save as SaveIcon,
-} from "@mui/icons-material";
-import { useSnackbar } from "notistack";
-import { db } from "../firebase";
-import {
-  collection,
-  getDocs,
   addDoc,
-  updateDoc,
+  collection,
   deleteDoc,
   doc,
+  getDocs,
+  updateDoc
 } from "firebase/firestore";
+
 import { useAuth } from "../contexts/AuthContext";
+import { db } from "../firebase";
 
 const CategoryManager = ({ open, handleClose }) => {
   const { currentUser } = useAuth();
@@ -52,14 +52,14 @@ const CategoryManager = ({ open, handleClose }) => {
             `users/${currentUser.uid}/categories`
           );
           const snapshot = await getDocs(categoriesRef);
-          const categoriesList = snapshot.docs.map((doc) => ({
+          const categoriesList = snapshot.docs.map(doc => ({
             id: doc.id,
-            ...doc.data(),
+            ...doc.data()
           }));
           setCategories(categoriesList);
         } catch (error) {
           enqueueSnackbar("Error fetching categories: " + error.message, {
-            variant: "error",
+            variant: "error"
           });
         }
       }
@@ -83,7 +83,7 @@ const CategoryManager = ({ open, handleClose }) => {
       enqueueSnackbar("Category added successfully", { variant: "success" });
     } catch (error) {
       enqueueSnackbar("Error adding category: " + error.message, {
-        variant: "error",
+        variant: "error"
       });
     }
   };
@@ -93,7 +93,7 @@ const CategoryManager = ({ open, handleClose }) => {
       const categoryDoc = doc(db, `users/${currentUser.uid}/categories`, id);
       await updateDoc(categoryDoc, { name });
       setCategories(
-        categories.map((category) =>
+        categories.map(category =>
           category.id === id ? { id, name } : category
         )
       );
@@ -101,40 +101,40 @@ const CategoryManager = ({ open, handleClose }) => {
       enqueueSnackbar("Category updated successfully", { variant: "success" });
     } catch (error) {
       enqueueSnackbar("Error updating category: " + error.message, {
-        variant: "error",
+        variant: "error"
       });
     }
   };
 
-  const handleDeleteCategory = async (id) => {
+  const handleDeleteCategory = async id => {
     try {
       const categoryDoc = doc(db, `users/${currentUser.uid}/categories`, id);
       await deleteDoc(categoryDoc);
-      setCategories(categories.filter((category) => category.id !== id));
+      setCategories(categories.filter(category => category.id !== id));
       enqueueSnackbar("Category deleted successfully", { variant: "success" });
     } catch (error) {
       enqueueSnackbar("Error deleting category: " + error.message, {
-        variant: "error",
+        variant: "error"
       });
     }
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog open={ open } onClose={ handleClose } maxWidth="sm" fullWidth>
       <DialogTitle>Gérer les catégories</DialogTitle>
       <DialogContent>
-        <Box display="flex" alignItems="center" mb={2}>
+        <Box display="flex" alignItems="center" mb={ 2 }>
           <TextField
             label="Ajouter une catégorie"
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
+            value={ newCategory }
+            onChange={ e => setNewCategory(e.target.value) }
             fullWidth
           />
-          <IconButton color="primary" onClick={handleAddCategory}>
+          <IconButton color="primary" onClick={ handleAddCategory }>
             <SaveIcon />
           </IconButton>
         </Box>
-        <TableContainer component={Paper}>
+        <TableContainer component={ Paper }>
           <Table>
             <TableHead>
               <TableRow>
@@ -144,64 +144,63 @@ const CategoryManager = ({ open, handleClose }) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {categories.map((category, index) => (
-                <TableRow key={category.id}>
-                  <TableCell>{index + 1}</TableCell>
+              { categories.map((category, index) => (
+                <TableRow key={ category.id }>
+                  <TableCell>{ index + 1 }</TableCell>
                   <TableCell>
-                    {editingCategory === category.id ? (
+                    { editingCategory === category.id ? (
                       <TextField
-                        value={category.name}
-                        onChange={(e) =>
+                        value={ category.name }
+                        onChange={ e =>
                           setCategories(
-                            categories.map((cat) =>
+                            categories.map(cat =>
                               cat.id === category.id
                                 ? { ...cat, name: e.target.value }
                                 : cat
-                            )
-                          )
+                            ))
                         }
                       />
                     ) : (
                       category.name
-                    )}
+                    ) }
                   </TableCell>
                   <TableCell>
-                    {editingCategory === category.id ? (
+                    { editingCategory === category.id ? (
                       <>
                         <IconButton
-                          onClick={() =>
+                          onClick={ () =>
                             handleEditCategory(category.id, category.name)
                           }
                         >
                           <SaveIcon />
                         </IconButton>
-                        <IconButton onClick={() => setEditingCategory(null)}>
+                        <IconButton onClick={ () => setEditingCategory(null) }>
                           <Button color="secondary">Annuler</Button>
                         </IconButton>
                       </>
                     ) : (
                       <>
                         <IconButton
-                          onClick={() => setEditingCategory(category.id)}
+                          onClick={ () => setEditingCategory(category.id) }
                         >
                           <EditIcon />
                         </IconButton>
                         <IconButton
-                          onClick={() => handleDeleteCategory(category.id)}
+                          onClick={ () => handleDeleteCategory(category.id) }
                         >
                           <DeleteIcon />
                         </IconButton>
                       </>
-                    )}
+                    ) }
                   </TableCell>
                 </TableRow>
-              ))}
+              )) }
             </TableBody>
           </Table>
         </TableContainer>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="primary">
+        <Button onClick={ handleClose } color="primary">
           Annuler
         </Button>
       </DialogActions>

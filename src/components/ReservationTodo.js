@@ -1,45 +1,47 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useSnackbar } from "notistack";
+
+import AssignmentIcon from "@mui/icons-material/Assignment"; // Icône pour les tâches
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import {
-  IconButton,
-  Tooltip,
+  Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Button,
-  TextField,
+  IconButton,
+  Paper,
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  TableContainer,
-  Checkbox
+  TextField,
+  Tooltip
 } from "@mui/material";
-import AssignmentIcon from "@mui/icons-material/Assignment"; // Icône pour les tâches
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import EditIcon from "@mui/icons-material/Edit";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "../firebase"; // Firebase Firestore instance
-import { useAuth } from "../contexts/AuthContext"; // Contexte pour récupérer currentUser
-import { useSnackbar } from "notistack";
 import Badge from "@mui/material/Badge"; // Importation de Badge de Material-UI pour le compteur
 import { styled } from "@mui/material/styles"; // Importation pour styliser le Badge
-import DeleteIcon from "@mui/icons-material/Delete";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+
+import { useAuth } from "../contexts/AuthContext"; // Contexte pour récupérer currentUser
+import { db } from "../firebase"; // Firebase Firestore instance
 
 
-  const StyledBadge = styled(Badge)(({ theme }) => ({
-      '& .MuiBadge-badge': {
-        right: -3,
-        border: `2px solid ${theme.palette.background.paper}`,
-        padding: '0 4px',
-      },
-    }));
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  "& .MuiBadge-badge": {
+    right: -3,
+    border: `2px solid ${theme.palette.background.paper}`,
+    padding: "0 4px"
+  }
+}));
 
 export default function ReservationTodo({ reservation }) {
   const { currentUser } = useAuth(); // Récupérer l'utilisateur connecté
-  const [tasks, setTasks] = useState(reservation.workflow?.tasks || []); // Charger initialement les tâches depuis reservation s'il y a
+  const [tasks, setTasks] = useState(reservation.workflow?.tasks || []); 
   const [newTaskLabel, setNewTaskLabel] = useState(""); // État pour le texte de la nouvelle tâche
   const [openTaskManager, setOpenTaskManager] = useState(false);
   const [openTaskDetails, setOpenTaskDetails] = useState(false);
@@ -67,27 +69,27 @@ export default function ReservationTodo({ reservation }) {
   };
 
   const handleAddTask = async () => {
-  if (!newTaskLabel.trim()) {
-    enqueueSnackbar("Le nom de la tâche ne peut pas être vide", { variant: "warning" });
-    return;
-  }
+    if (!newTaskLabel.trim()) {
+      enqueueSnackbar("Le nom de la tâche ne peut pas être vide", { variant: "warning" });
+      return;
+    }
 
-  const newTask = {
-    label: newTaskLabel,
-    done: false,
-    dateDone: null,
-    comment: ""
+    const newTask = {
+      label: newTaskLabel,
+      done: false,
+      dateDone: null,
+      comment: ""
+    };
+
+    const updatedTasks = [...tasks, newTask];
+    setTasks(updatedTasks); // Mise à jour de l'état local
+    setNewTaskLabel(""); // Réinitialise le champ de saisie
+
+    const orderDocRef = doc(db, `users/${userId}/orders/${orderId}`);
+    await updateDoc(orderDocRef, { "workflow.tasks": updatedTasks });
+
+    enqueueSnackbar("Tâche ajoutée avec succès", { variant: "success" });
   };
-
-  const updatedTasks = [...tasks, newTask];
-  setTasks(updatedTasks); // Mise à jour de l'état local
-  setNewTaskLabel(""); // Réinitialise le champ de saisie
-
-  const orderDocRef = doc(db, `users/${userId}/orders/${orderId}`);
-  await updateDoc(orderDocRef, { "workflow.tasks": updatedTasks });
-
-  enqueueSnackbar("Tâche ajoutée avec succès", { variant: "success" });
-};
 
   useEffect(() => {
     refreshTasksFromFirestore(); // Charger les tâches lors du montage initial du composant
@@ -103,7 +105,7 @@ export default function ReservationTodo({ reservation }) {
   };
 
   // Gérer l'ouverture de la fenêtre de détails de la tâche
-  const handleClickOpenTaskDetails = (task) => {
+  const handleClickOpenTaskDetails = task => {
     setSelectedTask(task);
     setComment(task.comment || "");
     setOpenTaskDetails(true);
@@ -115,7 +117,7 @@ export default function ReservationTodo({ reservation }) {
   };
 
   // Cochez/Décochez une tâche
-  const handleCheckTask = async (taskIndex) => {
+  const handleCheckTask = async taskIndex => {
     const updatedTasks = tasks.map((task, index) =>
       index === taskIndex ? { ...task, done: !task.done, dateDone: !task.done ? new Date().toISOString() : null } : task
     );
@@ -131,7 +133,7 @@ export default function ReservationTodo({ reservation }) {
 
   // Enregistrer un commentaire pour une tâche
   const handleSaveComment = async () => {
-    const updatedTasks = tasks.map((task) =>
+    const updatedTasks = tasks.map(task =>
       task === selectedTask ? { ...task, comment } : task
     );
 
@@ -144,7 +146,7 @@ export default function ReservationTodo({ reservation }) {
     handleCloseTaskDetails();
   };
 
-  const handleDeleteTask = async (taskIndex) => {
+  const handleDeleteTask = async taskIndex => {
     // Filtrer la tâche à supprimer
     const updatedTasks = tasks.filter((_, index) => index !== taskIndex);
     
@@ -160,7 +162,7 @@ export default function ReservationTodo({ reservation }) {
 
   const countTask = () => {
     let counter = 0;
-    tasks.forEach((task) => {
+    tasks.forEach(task => {
       if (!task.done) {
         counter += 1;
       }
@@ -170,20 +172,20 @@ export default function ReservationTodo({ reservation }) {
 
   return (
     <>
-      {/* Bouton pour ouvrir le gestionnaire de tâches */}
+      { /* Bouton pour ouvrir le gestionnaire de tâches */ }
       <Tooltip title="Gérer les tâches">
-        <IconButton onClick={handleOpenTaskManager}>
-          <StyledBadge badgeContent={countTask()} color="secondary">
+        <IconButton onClick={ handleOpenTaskManager }>
+          <StyledBadge badgeContent={ countTask() } color="secondary">
             <AssignmentIcon color="primary" />
           </StyledBadge>
         </IconButton>
       </Tooltip>
 
-      {/* Fenêtre modale pour afficher les tâches */}
-      <Dialog open={openTaskManager} onClose={handleCloseTaskManager} fullWidth maxWidth="sm">
+      { /* Fenêtre modale pour afficher les tâches */ }
+      <Dialog open={ openTaskManager } onClose={ handleCloseTaskManager } fullWidth maxWidth="sm">
         <DialogTitle>Liste des tâches sur cette prestation</DialogTitle>
         <DialogContent>
-          <TableContainer component={Paper}>
+          <TableContainer component={ Paper }>
             <Table size="small">
               <TableHead>
                 <TableRow>
@@ -193,91 +195,91 @@ export default function ReservationTodo({ reservation }) {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {tasks.map((task, index) => (
-                  <TableRow key={index} style={task.done ? { textDecorationLine: "line-through" } : {}}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell>{task.label}</TableCell>
+                { tasks.map((task, index) => (
+                  <TableRow key={ index } style={ task.done ? { textDecorationLine: "line-through" } : {} }>
+                    <TableCell>{ index + 1 }</TableCell>
+                    <TableCell>{ task.label }</TableCell>
                     <TableCell>
-                      {/* Cocher/Décocher la tâche */}
-                      <Tooltip title={task.done ? "Réactiver la tâche" : "Marquer comme accompli"}>
+                      { /* Cocher/Décocher la tâche */ }
+                      <Tooltip title={ task.done ? "Réactiver la tâche" : "Marquer comme accompli" }>
                         <Checkbox
-                          checked={task.done}
-                          onChange={() => handleCheckTask(index)}
-                          icon={<CheckCircleIcon />}
-                          checkedIcon={<CheckCircleIcon color="success" />}
+                          checked={ task.done }
+                          onChange={ () => handleCheckTask(index) }
+                          icon={ <CheckCircleIcon /> }
+                          checkedIcon={ <CheckCircleIcon color="success" /> }
                         />
                       </Tooltip>
-                      {/* Modifier la tâche / Ajouter un commentaire */}
+                      { /* Modifier la tâche / Ajouter un commentaire */ }
                       <Tooltip title="Ajouter un commentaire">
-                        <IconButton onClick={() => handleClickOpenTaskDetails(task)}>
+                        <IconButton onClick={ () => handleClickOpenTaskDetails(task) }>
                           <EditIcon />
                         </IconButton>
                       </Tooltip>
-                      {/* Supprimer la tâche */}
+                      { /* Supprimer la tâche */ }
                       <Tooltip title="Supprimer la tâche">
-                        <IconButton onClick={() => handleDeleteTask(index)} color="secondary">
+                        <IconButton onClick={ () => handleDeleteTask(index) } color="secondary">
                           <DeleteIcon />
                         </IconButton>
                       </Tooltip>
                     </TableCell>
                   </TableRow>
-                ))}
+                )) }
               </TableBody>
             </Table>
           </TableContainer>
-            {/* Champ de saisie pour la nouvelle tâche */}
+          { /* Champ de saisie pour la nouvelle tâche */ }
           <TextField
             fullWidth
             variant="outlined"
             label="Nouvelle tâche"
-            value={newTaskLabel}
-            onChange={(e) => setNewTaskLabel(e.target.value)}
+            value={ newTaskLabel }
+            onChange={ e => setNewTaskLabel(e.target.value) }
             margin="dense"
           />
-          <Button onClick={handleAddTask} color="primary" variant="contained" style={{ marginTop: 8 }}>
+          <Button onClick={ handleAddTask } color="primary" variant="contained" style={ { marginTop: 8 } }>
             Ajouter la tâche
           </Button>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseTaskManager} color="primary">
+          <Button onClick={ handleCloseTaskManager } color="primary">
             Fermer
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Fenêtre de dialogue pour afficher et ajouter un commentaire */}
-      <Dialog open={openTaskDetails} onClose={handleCloseTaskDetails}>
+      { /* Fenêtre de dialogue pour afficher et ajouter un commentaire */ }
+      <Dialog open={ openTaskDetails } onClose={ handleCloseTaskDetails }>
         <DialogTitle>Détails de la tâche</DialogTitle>
         <DialogContent>
           <p>
-            <strong>Nom :</strong> {selectedTask?.label}
+            <strong>Nom :</strong> { selectedTask?.label }
           </p>
           <p>
             <strong>Date d'accomplissement :</strong> {
-            new Date(
-                      selectedTask?.dateDone
-                    ).toLocaleString("fr-FR", {
-                      year: "numeric",
-                      month: "numeric",
-                      day: "numeric",
-                    })            
-            || "Non accomplie"}
+              new Date(
+                selectedTask?.dateDone
+              ).toLocaleString("fr-FR", {
+                year: "numeric",
+                month: "numeric",
+                day: "numeric"
+              })            
+            || "Non accomplie" }
           </p>
           <TextField
             fullWidth
             margin="dense"
             label="Commentaire"
             multiline
-            rows={3}
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
+            rows={ 3 }
+            value={ comment }
+            onChange={ e => setComment(e.target.value) }
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseTaskDetails} color="primary">
+          <Button onClick={ handleCloseTaskDetails } color="primary">
             Annuler
           </Button>
-          <Button onClick={handleSaveComment} color="secondary">
+          <Button onClick={ handleSaveComment } color="secondary">
             Enregistrer
           </Button>
         </DialogActions>

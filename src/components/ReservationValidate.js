@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { db } from "../firebase"; // Firebase Firestore instance
-import { getFunctions, httpsCallable } from "firebase/functions"; // Import correct des fonctions Firebase
-import { doc, updateDoc } from "firebase/firestore";
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Tooltip, IconButton } from "@mui/material";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import { useAuth } from "../contexts/AuthContext";
 import { useSnackbar } from "notistack";
+
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Tooltip } from "@mui/material";
+import { doc, updateDoc } from "firebase/firestore";
+import { getFunctions, httpsCallable } from "firebase/functions"; // Import correct des fonctions Firebase
+
+import { useAuth } from "../contexts/AuthContext";
+import { db } from "../firebase"; // Firebase Firestore instance
 
 const ValidateReservation = ({ reservation }) => {
   const { currentUser } = useAuth();
@@ -21,7 +23,7 @@ const ValidateReservation = ({ reservation }) => {
         orderIsCanceled: false, // Retirer l'annulation si elle était présente
         orderIsConfirmedDate: new Date().toISOString(),
         rejectionDate: null, // Retirer la date d'annulation si elle était présente
-        rejectionReason: null, // Retirer la raison d'annulation si elle était présente
+        rejectionReason: null // Retirer la raison d'annulation si elle était présente
       });
 
       // Envoi d'un e-mail de confirmation via Firebase Functions
@@ -40,8 +42,8 @@ const ValidateReservation = ({ reservation }) => {
           year: "numeric",
           month: "long",
           day: "numeric",
-          weekday: "long",
-        }),
+          weekday: "long"
+        })
       });
 
       enqueueSnackbar("Prestation validée et e-mail envoyé.", { variant: "success" });
@@ -67,15 +69,15 @@ const ValidateReservation = ({ reservation }) => {
 
   return (
     <>
-      <Tooltip title={reservation.orderIsConfirmed ? "Prestation déjà validée" : "Valider la prestation"}>
+      <Tooltip title={ reservation.orderIsConfirmed ? "Prestation déjà validée" : "Valider la prestation" }>
         <span>
-          <IconButton onClick={handleOpenConfirmation} disabled={reservation.orderIsConfirmed}>
-            <CheckCircleIcon color={reservation.orderIsConfirmed ? "disabled" : "primary"} />
+          <IconButton onClick={ handleOpenConfirmation } disabled={ reservation.orderIsConfirmed }>
+            <CheckCircleIcon color={ reservation.orderIsConfirmed ? "disabled" : "primary" } />
           </IconButton>
         </span>
       </Tooltip>
 
-      <Dialog open={confirmDialogOpen} onClose={handleCloseConfirmation}>
+      <Dialog open={ confirmDialogOpen } onClose={ handleCloseConfirmation }>
         <DialogTitle>Confirmation de validation</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -83,8 +85,8 @@ const ValidateReservation = ({ reservation }) => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseConfirmation} color="primary">Annuler</Button>
-          <Button onClick={confirmValidation} color="primary" autoFocus>Confirmer</Button>
+          <Button onClick={ handleCloseConfirmation } color="primary">Annuler</Button>
+          <Button onClick={ confirmValidation } color="primary" autoFocus>Confirmer</Button>
         </DialogActions>
       </Dialog>
     </>

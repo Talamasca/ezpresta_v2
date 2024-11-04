@@ -1,42 +1,44 @@
 // Reservation.jsx
-import React, { useState, useEffect } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import { db } from "../firebase";
-import { addDoc, collection, getDocs, query } from "firebase/firestore";
-import { useSnackbar } from "notistack";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
+import { useEffect, useState } from "react";
 import frLocale from "date-fns/locale/fr";
+import { useSnackbar } from "notistack";
 
+import { PersonAdd as PersonAddIcon } from "@mui/icons-material";
+import CancelIcon from "@mui/icons-material/Cancel";
+import EditLocationIcon from "@mui/icons-material/EditLocation";
 import {
+  Autocomplete as MUIAutocomplete,
+  Button,
   Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   IconButton,
+  MenuItem,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
-  MenuItem,
-  Button,
-  Dialog,
-  Autocomplete as MUIAutocomplete,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
+  TextField
 } from "@mui/material";
+import { Box, Card, CardContent, Grid, Typography } from "@mui/material";
 import Paper from "@mui/material/Paper";
-import CancelIcon from "@mui/icons-material/Cancel";
-import EditLocationIcon from "@mui/icons-material/EditLocation";
-import { PersonAdd as PersonAddIcon } from "@mui/icons-material";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { addDoc, collection, getDocs, query } from "firebase/firestore";
+
+import AddDiscountDialog from "../components/AddDiscountDialog";
 import AddFeeDialog from "../components/AddFeeDialog";
 import CustomerForm from "../components/CustomerForm";
 import LocationForm from "../components/LocationForm";
-import AddDiscountDialog from "../components/AddDiscountDialog";
-import { Box, Card, Grid, CardContent, Typography } from "@mui/material";
+import { useAuth } from "../contexts/AuthContext";
+import { db } from "../firebase";
+
 
 function Reservation() {
   const { currentUser } = useAuth();
@@ -63,7 +65,7 @@ function Reservation() {
   const [selectedWorkflow, setSelectedWorkflow] = useState(null);
   const [workflowTasks, setWorkflowTasks] = useState([]); // Les tâches du workflow sélectionné
 
-  const handleOpenConfirmDialog = (index) => {
+  const handleOpenConfirmDialog = index => {
     setLocationToRemove(index);
     setOpenConfirmDialog(true);
   };
@@ -82,7 +84,7 @@ function Reservation() {
   const handleSaveReservation = async () => {
     if (!selectedService || !selectedClient || !selectedDate) {
       enqueueSnackbar("Merci de remplir tous les champs requis.", {
-        variant: "error",
+        variant: "error"
       });
       return;
     }
@@ -95,38 +97,38 @@ function Reservation() {
       discounts: discounts,
       totalPrice: totalPrice, // Prix total calculé
       selectedDate: selectedDate.toISOString(), // Date de la prestation
-      locations: locations.map((location) => ({
+      locations: locations.map(location => ({
         place_id: location.place.place_id,
         locationWhere: location.place
           ? location.place.description || location.place.formatted_address
           : "",
         eventName: location.eventName,
         isDefault: location.isDefault || false,
-        eventDate: location.eventDate,
+        eventDate: location.eventDate
       })),
       workflow: selectedWorkflow
         ? {
-            id: selectedWorkflow.id,
-            tasks: workflowTasks, // Liste des tâches
-          }
+          id: selectedWorkflow.id,
+          tasks: workflowTasks // Liste des tâches
+        }
         : null, // Workflow sélectionné s'il y en a un
       paymentPlan: paymentPlan !== "Non" ? paymentPlan : null, // Plan de paiement
       paymentDetails:
         paymentPlan !== "Non"
           ? paymentPercentages.map((percentage, index) => ({
-              paymentNumber: index + 1,
-              percentage: percentage,
-              value: paymentValues[index],
-              isPaid: false, // Non payé par défaut
-            }))
+            paymentNumber: index + 1,
+            percentage: percentage,
+            value: paymentValues[index],
+            isPaid: false // Non payé par défaut
+          }))
           : [], // Répartition des paiements si applicable
-      createDate: new Date().toISOString(), // Date de création
+      createDate: new Date().toISOString() // Date de création
     };
 
     try {
       await addDoc(collection(db, `users/${currentUser.uid}/orders`), orderData); // Ajout de la réservation dans Firestore
       enqueueSnackbar("Réservation enregistrée avec succès.", {
-        variant: "success",
+        variant: "success"
       });
     } catch (error) {
       enqueueSnackbar(
@@ -153,26 +155,26 @@ function Reservation() {
             await Promise.all([
               getDocs(query(catalogRef)),
               getDocs(query(customersRef)),
-              getDocs(workflowsRef),
+              getDocs(workflowsRef)
             ]);
           setCatalogItems(
-            catalogSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+            catalogSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
           );
           setClients(
-            customerSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+            customerSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
           );
           setWorkflows(
-            workflowSnapshot.docs.map((doc) => ({
+            workflowSnapshot.docs.map(doc => ({
               id: doc.id,
               name: doc.data().name,
-              tasks: doc.data().tasks || [], // S'assurer que les tâches sont récupérées
+              tasks: doc.data().tasks || [] // S'assurer que les tâches sont récupérées
             }))
           );
         } catch (error) {
           enqueueSnackbar(
             "Échec du chargement des données : " + error.message,
             {
-              variant: "error",
+              variant: "error"
             }
           );
         }
@@ -201,13 +203,13 @@ function Reservation() {
     );
   }, [servicePrice, fees, discounts]);
 
-  const handleServiceChange = (event) => {
+  const handleServiceChange = event => {
     const selectedServiceId = event.target.value;
     setSelectedService(selectedServiceId);
 
     // Trouver le prix de la prestation sélectionnée
     const selectedService = catalogItems.find(
-      (item) => item.id === selectedServiceId
+      item => item.id === selectedServiceId
     );
     setServicePrice(selectedService ? selectedService.price : 0);
   };
@@ -220,8 +222,8 @@ function Reservation() {
     setOpenDialog(!openDialog);
   };
 
-  const handleCustomerSave = (newCustomer) => {
-    setClients((prevClients) => [...prevClients, newCustomer]);
+  const handleCustomerSave = newCustomer => {
+    setClients(prevClients => [...prevClients, newCustomer]);
     setSelectedClient(newCustomer);
     setOpenCustomerForm(false);
     setOpenDialog(false);
@@ -235,40 +237,40 @@ function Reservation() {
     setOpenLocationModal(false);
   };
 
-  const handleLocationSave = (newLocation) => {
-    setLocations((prevLocations) => [...prevLocations, newLocation]);
+  const handleLocationSave = newLocation => {
+    setLocations(prevLocations => [...prevLocations, newLocation]);
     enqueueSnackbar("Lieu ajouté avec succès", { variant: "success" });
   };
 
-  const removeLocationByIndex = (indexToRemove) => {
-    setLocations((prevLocations) =>
+  const removeLocationByIndex = indexToRemove => {
+    setLocations(prevLocations =>
       prevLocations.filter((_, index) => index !== indexToRemove)
     );
   };
 
-  const setLocationAsDefault = (indexToSet) => {
-    setLocations((prevLocations) =>
+  const setLocationAsDefault = indexToSet => {
+    setLocations(prevLocations =>
       prevLocations.map((location, index) => ({
         ...location,
-        isDefault: index === indexToSet,
+        isDefault: index === indexToSet
       }))
     );
   };
 
-  const handleAddDiscount = (newDiscount) => {
-    setDiscounts((prevDiscounts) => [...prevDiscounts, newDiscount]);
+  const handleAddDiscount = newDiscount => {
+    setDiscounts(prevDiscounts => [...prevDiscounts, newDiscount]);
   };
-  const handleAddFee = (newFee) => {
-    setFees((prevFees) => [...prevFees, newFee]);
+  const handleAddFee = newFee => {
+    setFees(prevFees => [...prevFees, newFee]);
   };
 
   const removeByIndex = (indexToRemove, type) => {
     if (type === "fee") {
-      setFees((prevFees) =>
+      setFees(prevFees =>
         prevFees.filter((_, index) => index !== indexToRemove)
       );
     } else if (type === "discount") {
-      setDiscounts((prevDiscounts) =>
+      setDiscounts(prevDiscounts =>
         prevDiscounts.filter((_, index) => index !== indexToRemove)
       );
     }
@@ -281,11 +283,11 @@ function Reservation() {
 
   // Fonction pour recalculer les valeurs en euros
   const calculatePaymentValues = (total, percentages) => {
-    return percentages.map((percentage) => (total * percentage) / 100);
+    return percentages.map(percentage => (total * percentage) / 100);
   };
 
   // Mise à jour des pourcentages et calcul des montants en euros lorsque le plan de paiement change
-  const handlePaymentPlanChange = (e) => {
+  const handlePaymentPlanChange = e => {
     const selectedPlan = e.target.value;
     setPaymentPlan(selectedPlan);
 
@@ -320,14 +322,14 @@ function Reservation() {
 
   return (
     <div>
-      <Box sx={{ p: 2 }}>
-        <Grid container spacing={5}>
-          <Grid item xs={12} sm={12} md={6}>
+      <Box sx={ { p: 2 } }>
+        <Grid container spacing={ 5 }>
+          <Grid item xs={ 12 } sm={ 12 } md={ 6 }>
             <Card>
-              <CardContent sx={{ p: 2 }}>
+              <CardContent sx={ { p: 2 } }>
                 <Typography
                   variant="h6"
-                  sx={{ fontWeight: 500, fontSize: "1.2rem", mb: 2 }}
+                  sx={ { fontWeight: 500, fontSize: "1.2rem", mb: 2 } }
                 >
                   Nouvelle Prestation
                 </Typography>
@@ -335,153 +337,153 @@ function Reservation() {
                 <TextField
                   select
                   label="Type de prestation"
-                  value={selectedService}
-                  onChange={handleServiceChange}
+                  value={ selectedService }
+                  onChange={ handleServiceChange }
                   fullWidth
                 >
-                  {catalogItems.map((item) => (
-                    <MenuItem key={item.id} value={item.id}>
-                      {item.type} : {item.name} - {item.price}€
+                  { catalogItems.map(item => (
+                    <MenuItem key={ item.id } value={ item.id }>
+                      { item.type } : { item.name } - { item.price }€
                     </MenuItem>
-                  ))}
+                  )) }
                 </TextField>
 
-                <div style={{ marginBottom: "1rem", marginTop: "1rem" }}>
+                <div style={ { marginBottom: "1rem", marginTop: "1rem" } }>
                   <MUIAutocomplete
-                    options={clients}
-                    getOptionLabel={(option) =>
+                    options={ clients }
+                    getOptionLabel={ option =>
                       option ? `${option.firstname}` : ""
                     }
-                    style={{ width: 300 }}
-                    onChange={handleClientChange}
-                    renderInput={(params) => (
+                    style={ { width: 300 } }
+                    onChange={ handleClientChange }
+                    renderInput={ params => (
                       <TextField
-                        {...params}
+                        { ...params }
                         label="Client"
                         variant="outlined"
                       />
-                    )}
-                    value={selectedClient}
+                    ) }
+                    value={ selectedClient }
                     id="client"
                     name="client"
                   />
                 </div>
-                <div style={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
+                <div style={ { marginBottom: "1.3rem", marginTop: "1.2rem" } }>
                   <Button
                     variant="outlined"
                     color="primary"
-                    startIcon={<PersonAddIcon />}
-                    onClick={toggleDialog}
+                    startIcon={ <PersonAddIcon /> }
+                    onClick={ toggleDialog }
                     size="small"
                   >
                     Nouveau client
-                  </Button>{" "}
+                  </Button>{ " " }
                 </div>
 
                 <Dialog
-                  open={openDialog}
-                  onClose={toggleDialog}
+                  open={ openDialog }
+                  onClose={ toggleDialog }
                   maxWidth="md"
                   fullWidth
                 >
                   <CustomerForm
-                    open={openDialog}
-                    handleClose={toggleDialog}
-                    onSave={handleCustomerSave}
+                    open={ openDialog }
+                    handleClose={ toggleDialog }
+                    onSave={ handleCustomerSave }
                   />
                 </Dialog>
 
                 <LocalizationProvider
-                  dateAdapter={AdapterDateFns}
-                  adapterLocale={frLocale}
+                  dateAdapter={ AdapterDateFns }
+                  adapterLocale={ frLocale }
                 >
                   <DatePicker
                     label="Date de la prestation"
-                    value={selectedDate}
-                    onChange={(newValue) => {
+                    value={ selectedDate }
+                    onChange={ newValue => {
                       setSelectedDate(newValue);
-                    }}
-                    renderInput={(params) => (
-                      <TextField {...params} fullWidth margin="normal" />
-                    )}
+                    } }
+                    renderInput={ params => (
+                      <TextField { ...params } fullWidth margin="normal" />
+                    ) }
                   />
                 </LocalizationProvider>
-                <div style={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
+                <div style={ { marginBottom: "1.3rem", marginTop: "1.2rem" } }>
                   <Button
                     variant="outlined"
                     color="primary"
-                    onClick={handleOpenLocationModal}
+                    onClick={ handleOpenLocationModal }
                     size="small"
-                    startIcon={<EditLocationIcon />}
+                    startIcon={ <EditLocationIcon /> }
                   >
                     Ajouter un lieu
                   </Button>
                 </div>
 
                 <Dialog
-                  open={openLocationModal}
-                  onClose={handleCloseLocationModal}
+                  open={ openLocationModal }
+                  onClose={ handleCloseLocationModal }
                   maxWidth="sm"
                   fullWidth
                 >
                   <LocationForm
-                    selectedDate={selectedDate}
-                    onClose={handleCloseLocationModal}
-                    onSave={handleLocationSave}
+                    selectedDate={ selectedDate }
+                    onClose={ handleCloseLocationModal }
+                    onSave={ handleLocationSave }
                   />
                 </Dialog>
 
-                {locations.length >= 1 ? (
-                  <TableContainer component={Paper}>
+                { locations.length >= 1 ? (
+                  <TableContainer component={ Paper }>
                     <Table aria-label="simple table">
                       <TableHead>
                         <TableRow>
-                          <TableCell align="left" sx={{ fontWeight: 500 }}>
+                          <TableCell align="left" sx={ { fontWeight: 500 } }>
                             Lieu Principal
                           </TableCell>
                           <TableCell align="center">Date</TableCell>
                           <TableCell align="center">Lieu</TableCell>
                           <TableCell align="center">Note</TableCell>
-                          {/* <TableCell  align="center">
+                          { /* <TableCell  align="center">
                                                         Distance
-                                                    </TableCell> */}
+                                                    </TableCell> */ }
                           <TableCell align="center">Action</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {locations.map((v, index) => {
+                        { locations.map((v, index) => {
                           return (
-                            <TableRow key={v.place_id + index.toString()}>
+                            <TableRow key={ v.place_id + index.toString() }>
                               <TableCell align="left">
                                 <Checkbox
-                                  checked={v.isDefault}
-                                  onChange={() => setLocationAsDefault(index)}
-                                  inputProps={{
-                                    "aria-label": "primary checkbox",
-                                  }}
+                                  checked={ v.isDefault }
+                                  onChange={ () => setLocationAsDefault(index) }
+                                  inputProps={ {
+                                    "aria-label": "primary checkbox"
+                                  } }
                                 />
                               </TableCell>
                               <TableCell align="center">
-                                {new Date(v.eventDate).toLocaleString("fr-FR", {
+                                { new Date(v.eventDate).toLocaleString("fr-FR", {
                                   year: "numeric",
                                   month: "numeric",
                                   day: "numeric",
                                   hour: "numeric",
-                                  minute: "numeric",
-                                })}
+                                  minute: "numeric"
+                                }) }
                               </TableCell>
                               <TableCell align="center">
-                                {v.place
+                                { v.place
                                   ? v.place.description ||
                                     v.place.formatted_address
-                                  : ""}
+                                  : "" }
                               </TableCell>
                               <TableCell align="center">
-                                {v.eventName}
+                                { v.eventName }
                               </TableCell>
-                              {/* <TableCell  align="center">
+                              { /* <TableCell  align="center">
                                                                 {v.distance || "Loading..."}
-                                                            </TableCell> */}
+                                                            </TableCell> */ }
                               <TableCell align="center">
                                 <IconButton
                                   type="button"
@@ -489,26 +491,26 @@ function Reservation() {
                                   color="secondary"
                                   size="medium"
                                   //disabled={isSubmitting}
-                                  onClick={() => {
+                                  onClick={ () => {
                                     //_removeLocationById(index);
                                     //removeLocationByIndex(index);
                                     handleOpenConfirmDialog(index);
-                                  }}
+                                  } }
                                 >
                                   <CancelIcon />
                                 </IconButton>
                               </TableCell>
                             </TableRow>
                           );
-                        })}
+                        }) }
                       </TableBody>
                     </Table>
                   </TableContainer>
-                ) : null}
+                ) : null }
 
                 <Dialog
-                  open={openConfirmDialog}
-                  onClose={handleCloseConfirmDialog}
+                  open={ openConfirmDialog }
+                  onClose={ handleCloseConfirmDialog }
                 >
                   <DialogTitle>Confirmer la suppression</DialogTitle>
                   <DialogContent>
@@ -517,11 +519,11 @@ function Reservation() {
                     </DialogContentText>
                   </DialogContent>
                   <DialogActions>
-                    <Button onClick={handleCloseConfirmDialog} color="primary">
+                    <Button onClick={ handleCloseConfirmDialog } color="primary">
                       Annuler
                     </Button>
                     <Button
-                      onClick={handleConfirmRemoveLocation}
+                      onClick={ handleConfirmRemoveLocation }
                       color="secondary"
                     >
                       Supprimer
@@ -530,40 +532,40 @@ function Reservation() {
                 </Dialog>
               </CardContent>
             </Card>
-            <Card sx={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
-              <CardContent sx={{ p: 2 }}>
-                <div style={{ marginBottom: "1rem", marginTop: "1rem" }}>
+            <Card sx={ { marginBottom: "1.3rem", marginTop: "1.2rem" } }>
+              <CardContent sx={ { p: 2 } }>
+                <div style={ { marginBottom: "1rem", marginTop: "1rem" } }>
                   <TextField
                     select
                     label="Sélectionner un workflow"
-                    value={selectedWorkflow ? selectedWorkflow.id : ""}
-                    onChange={(e) => {
+                    value={ selectedWorkflow ? selectedWorkflow.id : "" }
+                    onChange={ e => {
                       const selectedId = e.target.value;
                       const workflow = workflows.find(
-                        (w) => w.id === selectedId
+                        w => w.id === selectedId
                       );
                       setSelectedWorkflow(workflow);
                       setWorkflowTasks(workflow ? workflow.tasks : []); // Charger les tâches du workflow sélectionné
-                    }}
+                    } }
                     fullWidth
                   >
-                    {workflows.map((workflow) => (
-                      <MenuItem key={workflow.id} value={workflow.id}>
-                        {workflow.name} - {workflow.tasks.length} tâche(s)
+                    { workflows.map(workflow => (
+                      <MenuItem key={ workflow.id } value={ workflow.id }>
+                        { workflow.name } - { workflow.tasks.length } tâche(s)
                       </MenuItem>
-                    ))}
+                    )) }
                   </TextField>
 
-                  {workflowTasks.length > 0 && (
-                    <div style={{ marginTop: "20px" }}>
+                  { workflowTasks.length > 0 && (
+                    <div style={ { marginTop: "20px" } }>
                       <Typography
                         variant="h6"
-                        sx={{ fontWeight: 500, fontSize: "1rem", mb: 2 }}
+                        sx={ { fontWeight: 500, fontSize: "1rem", mb: 2 } }
                       >
-                        {" "}
+                        { " " }
                         Liste des tâches pour ce workflow
                       </Typography>
-                      <TableContainer component={Paper}>
+                      <TableContainer component={ Paper }>
                         <Table>
                           <TableHead>
                             <TableRow>
@@ -572,149 +574,149 @@ function Reservation() {
                             </TableRow>
                           </TableHead>
                           <TableBody>
-                            {workflowTasks.map((task, index) => (
-                              <TableRow key={index}>
-                                <TableCell>{task.label}</TableCell>
+                            { workflowTasks.map((task, index) => (
+                              <TableRow key={ index }>
+                                <TableCell>{ task.label }</TableCell>
                                 <TableCell align="center">
                                   <Checkbox
-                                    checked={task.done || false}
-                                    onChange={(e) => {
+                                    checked={ task.done || false }
+                                    onChange={ e => {
                                       const updatedTasks = [...workflowTasks];
                                       updatedTasks[index].done =
                                         e.target.checked;
                                       setWorkflowTasks(updatedTasks); // Mettre à jour l'état local
-                                    }}
+                                    } }
                                   />
                                 </TableCell>
                               </TableRow>
-                            ))}
+                            )) }
                           </TableBody>
                         </Table>
                       </TableContainer>
                     </div>
-                  )}
+                  ) }
                 </div>
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={12} md={6}>
+          <Grid item xs={ 12 } sm={ 12 } md={ 6 }>
             <Card>
-              <CardContent sx={{ p: 2 }}>
+              <CardContent sx={ { p: 2 } }>
                 <Typography
                   variant="h6"
-                  sx={{ fontWeight: 500, fontSize: "1.2rem", mb: 2 }}
+                  sx={ { fontWeight: 500, fontSize: "1.2rem", mb: 2 } }
                 >
                   Frais supplémentaires et Remises
                 </Typography>
-                {/* Bouton pour ajouter des frais supplémentaires */}
-                <div style={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
-                  <AddFeeDialog onAddFee={handleAddFee} />
+                { /* Bouton pour ajouter des frais supplémentaires */ }
+                <div style={ { marginBottom: "1.3rem", marginTop: "1.2rem" } }>
+                  <AddFeeDialog onAddFee={ handleAddFee } />
                 </div>
-                {/* Liste des frais supplémentaires */}
-                {fees.length > 0 && (
-                  <TableContainer component={Paper}>
+                { /* Liste des frais supplémentaires */ }
+                { fees.length > 0 && (
+                  <TableContainer component={ Paper }>
                     <Table
                       aria-label="simple table"
-                      sx={{ borderRadius: "4px" }}
+                      sx={ { borderRadius: "4px" } }
                     >
                       <TableHead>
                         <TableRow>
-                          <TableCell sx={{ fontWeight: 500 }}>Titre</TableCell>
-                          <TableCell sx={{ fontWeight: 500 }} align="center">
+                          <TableCell sx={ { fontWeight: 500 } }>Titre</TableCell>
+                          <TableCell sx={ { fontWeight: 500 } } align="center">
                             Montant
                           </TableCell>
-                          <TableCell sx={{ fontWeight: 500 }} align="center">
+                          <TableCell sx={ { fontWeight: 500 } } align="center">
                             Action
                           </TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {fees.map((fee, index) => (
-                          <TableRow key={index}>
-                            <TableCell>{fee.feeName}</TableCell>
+                        { fees.map((fee, index) => (
+                          <TableRow key={ index }>
+                            <TableCell>{ fee.feeName }</TableCell>
                             <TableCell align="right">
-                              {fee.feeAmount} €
+                              { fee.feeAmount } €
                             </TableCell>
                             <TableCell align="center">
                               <IconButton
                                 type="button"
                                 color="secondary"
                                 size="small"
-                                onClick={() => removeByIndex(index, "fee")}
+                                onClick={ () => removeByIndex(index, "fee") }
                               >
                                 <CancelIcon />
                               </IconButton>
                             </TableCell>
                           </TableRow>
-                        ))}
+                        )) }
                       </TableBody>
                     </Table>
                   </TableContainer>
-                )}
-                {/* Bouton pour ajouter une remise */}
-                <div style={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
-                  <AddDiscountDialog onAddDiscount={handleAddDiscount} />
+                ) }
+                { /* Bouton pour ajouter une remise */ }
+                <div style={ { marginBottom: "1.3rem", marginTop: "1.2rem" } }>
+                  <AddDiscountDialog onAddDiscount={ handleAddDiscount } />
                 </div>
-                {/* Liste des remises */}
-                {discounts.length > 0 && (
-                  <TableContainer component={Paper}>
+                { /* Liste des remises */ }
+                { discounts.length > 0 && (
+                  <TableContainer component={ Paper }>
                     <Table aria-label="remises">
                       <TableHead>
                         <TableRow>
-                          <TableCell sx={{ fontWeight: 500 }}>
+                          <TableCell sx={ { fontWeight: 500 } }>
                             Nom de la réduction
                           </TableCell>
-                          <TableCell sx={{ fontWeight: 500 }} align="right">
+                          <TableCell sx={ { fontWeight: 500 } } align="right">
                             Montant
                           </TableCell>
-                          <TableCell sx={{ fontWeight: 500 }} align="center">
+                          <TableCell sx={ { fontWeight: 500 } } align="center">
                             Action
                           </TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {discounts.map((discount, index) => (
-                          <TableRow key={index}>
-                            <TableCell>{discount.discountName}</TableCell>
+                        { discounts.map((discount, index) => (
+                          <TableRow key={ index }>
+                            <TableCell>{ discount.discountName }</TableCell>
                             <TableCell align="right">
-                              {discount.discountAmount}{" "}
-                              {discount.isPercentage ? "%" : "€"}
+                              { discount.discountAmount }{ " " }
+                              { discount.isPercentage ? "%" : "€" }
                             </TableCell>
                             <TableCell align="center">
                               <IconButton
                                 type="button"
                                 color="secondary"
                                 size="small"
-                                onClick={() => removeByIndex(index, "discount")}
+                                onClick={ () => removeByIndex(index, "discount") }
                               >
                                 <CancelIcon />
                               </IconButton>
                             </TableCell>
                           </TableRow>
-                        ))}
+                        )) }
                       </TableBody>
                     </Table>
                   </TableContainer>
-                )}
+                ) }
               </CardContent>
             </Card>
-            <Card sx={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
-              <CardContent sx={{ p: 2 }}>
+            <Card sx={ { marginBottom: "1.3rem", marginTop: "1.2rem" } }>
+              <CardContent sx={ { p: 2 } }>
                 <Typography
                   variant="h6"
-                  sx={{ fontWeight: 500, fontSize: "1.2rem", mb: 2 }}
+                  sx={ { fontWeight: 500, fontSize: "1.2rem", mb: 2 } }
                 >
                   Prix final
                 </Typography>
-                {/* Affichage du prix total */}
-                <TableContainer component={Paper}>
+                { /* Affichage du prix total */ }
+                <TableContainer component={ Paper }>
                   <Table aria-label="remises">
                     <TableHead>
                       <TableRow>
-                        <TableCell sx={{ fontWeight: 500 }}>
+                        <TableCell sx={ { fontWeight: 500 } }>
                           Désignation
                         </TableCell>
-                        <TableCell sx={{ fontWeight: 500 }} align="right">
+                        <TableCell sx={ { fontWeight: 500 } } align="right">
                           Montant
                         </TableCell>
                       </TableRow>
@@ -722,18 +724,18 @@ function Reservation() {
                     <TableBody>
                       <TableRow>
                         <TableCell>Prix de la prestation</TableCell>
-                        <TableCell align="right">{servicePrice} €</TableCell>
+                        <TableCell align="right">{ servicePrice } €</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Frais supplémentaires</TableCell>
                         <TableCell align="right">
-                          {fees.reduce((acc, fee) => acc + fee.feeAmount, 0)} €
+                          { fees.reduce((acc, fee) => acc + fee.feeAmount, 0) } €
                         </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Montant total des remises</TableCell>
                         <TableCell align="right">
-                          {discounts.reduce((acc, discount) => {
+                          { discounts.reduce((acc, discount) => {
                             if (discount.isPercentage) {
                               return (
                                 acc +
@@ -742,19 +744,19 @@ function Reservation() {
                             } else {
                               return acc + discount.discountAmount;
                             }
-                          }, 0)}{" "}
+                          }, 0) }{ " " }
                           €
                         </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>
-                          <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                          <Typography variant="body1" sx={ { fontWeight: 600 } }>
                             Prix total
                           </Typography>
                         </TableCell>
                         <TableCell align="right">
-                          <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                            {totalPrice} €
+                          <Typography variant="body1" sx={ { fontWeight: 600 } }>
+                            { totalPrice } €
                           </Typography>
                         </TableCell>
                       </TableRow>
@@ -762,13 +764,13 @@ function Reservation() {
                   </Table>
                 </TableContainer>
 
-                <div style={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
-                  <div style={{ marginBottom: "1.3rem", marginTop: "1.2rem" }}>
-                    <Grid container alignItems="center" spacing={2}>
+                <div style={ { marginBottom: "1.3rem", marginTop: "1.2rem" } }>
+                  <div style={ { marginBottom: "1.3rem", marginTop: "1.2rem" } }>
+                    <Grid container alignItems="center" spacing={ 2 }>
                       <Grid item>
                         <Typography
                           variant="body1"
-                          sx={{ fontWeight: 500, fontSize: "1rem" }}
+                          sx={ { fontWeight: 500, fontSize: "1rem" } }
                         >
                           Paiement en plusieurs fois
                         </Typography>
@@ -777,9 +779,9 @@ function Reservation() {
                         <TextField
                           select
                           name="paymentPlan"
-                          value={paymentPlan}
-                          onChange={handlePaymentPlanChange} // Met à jour la répartition et les montants en euros
-                          sx={{ width: "120px" }}
+                          value={ paymentPlan }
+                          onChange={ handlePaymentPlanChange } // Met à jour la répartition et les montants en euros
+                          sx={ { width: "120px" } }
                         >
                           <MenuItem value="Non">Non</MenuItem>
                           <MenuItem value="2x">2x</MenuItem>
@@ -789,11 +791,11 @@ function Reservation() {
                     </Grid>
                   </div>
 
-                  {/* Affichage des lignes de paiement si paiement multiple */}
-                  {paymentPlan !== "Non" && (
+                  { /* Affichage des lignes de paiement si paiement multiple */ }
+                  { paymentPlan !== "Non" && (
                     <TableContainer
-                      component={Paper}
-                      style={{ marginTop: "20px" }}
+                      component={ Paper }
+                      style={ { marginTop: "20px" } }
                     >
                       <Table>
                         <TableHead>
@@ -804,64 +806,64 @@ function Reservation() {
                           </TableRow>
                         </TableHead>
                         <TableBody>
-                          {paymentPercentages.map((percentage, index) => (
-                            <TableRow key={index}>
-                              <TableCell>{`n°${index + 1}`}</TableCell>
+                          { paymentPercentages.map((percentage, index) => (
+                            <TableRow key={ index }>
+                              <TableCell>{ `n°${index + 1}` }</TableCell>
                               <TableCell>
                                 <TextField
                                   type="number"
-                                  value={percentage}
-                                  onChange={(e) => {
+                                  value={ percentage }
+                                  onChange={ e => {
                                     const newPercentages = [
-                                      ...paymentPercentages,
+                                      ...paymentPercentages
                                     ];
                                     newPercentages[index] = parseInt(
                                       e.target.value
                                     );
                                     setPaymentPercentages(newPercentages);
-                                  }}
+                                  } }
                                   fullWidth
                                 />
                               </TableCell>
-                              <TableCell>{paymentValues[index]} €</TableCell>
+                              <TableCell>{ paymentValues[index] } €</TableCell>
                             </TableRow>
-                          ))}
+                          )) }
                         </TableBody>
                       </Table>
                     </TableContainer>
-                  )}
+                  ) }
 
-                  {/* Bouton pour recalculer la répartition */}
-                  {paymentPlan !== "Non" && (
+                  { /* Bouton pour recalculer la répartition */ }
+                  { paymentPlan !== "Non" && (
                     <Button
                       variant="contained"
                       color="primary"
-                      onClick={handleRecalculate}
-                      style={{ marginTop: "20px", fontSize: "x-small" }}
+                      onClick={ handleRecalculate }
+                      style={ { marginTop: "20px", fontSize: "x-small" } }
                     >
                       Recalculer la répartition
                     </Button>
-                  )}
+                  ) }
 
-                  {/* Afficher une erreur si les pourcentages ne sont pas corrects */}
-                  {paymentError && (
-                    <Typography color="error" style={{ marginTop: "10px" }}>
-                      {paymentError}
+                  { /* Afficher une erreur si les pourcentages ne sont pas corrects */ }
+                  { paymentError && (
+                    <Typography color="error" style={ { marginTop: "10px" } }>
+                      { paymentError }
                     </Typography>
-                  )}
+                  ) }
                 </div>
               </CardContent>
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={12} md={6}>
+          <Grid item xs={ 12 } sm={ 12 } md={ 6 }>
             <div>
-              {/* Autres composants existants */}
+              { /* Autres composants existants */ }
               <Button
                 variant="contained"
                 color="primary"
-                onClick={handleSaveReservation}
-                sx={{ marginTop: "20px" }}
+                onClick={ handleSaveReservation }
+                sx={ { marginTop: "20px" } }
               >
                 Enregistrer la réservation
               </Button>

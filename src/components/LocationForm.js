@@ -1,23 +1,24 @@
 // components/LocationForm.jsx
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import {
-  TextField,
-  Button,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Autocomplete,
-  CircularProgress,
-} from "@mui/material";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import parse from "autosuggest-highlight/parse";
 import frLocale from "date-fns/locale/fr";
 import throttle from "lodash/throttle";
-import parse from "autosuggest-highlight/parse";
-import { Grid, Typography } from "@mui/material";
+
 import LocationOnIcon from "@mui/icons-material/LocationOn";
+import {
+  Autocomplete,
+  Button,
+  CircularProgress,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField
+} from "@mui/material";
+import { Grid, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 
 function loadScript(src, position, id) {
   if (!position) {
@@ -87,11 +88,11 @@ function LocationForm({ selectedDate, onClose, onSave }) {
     setLoading(true);
     fetch(
       {
-        input: inputValue,
+        input: inputValue
         //types: ["geocode"],
         //componentRestrictions: { country: "fr" },
       },
-      (results) => {
+      results => {
         if (active) {
           setOptions(results || []);
           setLoading(false);
@@ -108,7 +109,7 @@ function LocationForm({ selectedDate, onClose, onSave }) {
     setInputValue(newInputValue);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = e => {
     e.preventDefault();
     onSave({ eventDate, eventName, place });
     onClose();
@@ -118,119 +119,119 @@ function LocationForm({ selectedDate, onClose, onSave }) {
     <>
       <DialogTitle>Ajouter un nouveau lieu</DialogTitle>
       <DialogContent>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={ handleSubmit }>
           <LocalizationProvider
-            dateAdapter={AdapterDateFns}
-            adapterLocale={frLocale}
+            dateAdapter={ AdapterDateFns }
+            adapterLocale={ frLocale }
           >
             <DateTimePicker
               label="Date et heure"
-              value={eventDate}
-              onChange={(newValue) => setEventDate(newValue)}
-              renderInput={(params) => (
-                <TextField {...params} fullWidth margin="normal" />
-              )}
+              value={ eventDate }
+              onChange={ newValue => setEventDate(newValue) }
+              renderInput={ params => (
+                <TextField { ...params } fullWidth margin="normal" />
+              ) }
             />
           </LocalizationProvider>
           <TextField
             label="Événement"
-            value={eventName}
-            onChange={(e) => setEventName(e.target.value)}
+            value={ eventName }
+            onChange={ e => setEventName(e.target.value) }
             fullWidth
             margin="normal"
           />
           <Autocomplete
             freeSolo
-            getOptionLabel={(option) =>
+            getOptionLabel={ option =>
               typeof option === "string" ? option : option.description
             }
-            filterOptions={(x) => x}
-            options={options}
+            filterOptions={ x => x }
+            options={ options }
             autoComplete
             includeInputInList
             filterSelectedOptions
-            value={place}
-            onChange={(event, value) => {
+            value={ place }
+            onChange={ (event, value) => {
               if (value) {
                 setPlaceId(value);
                 setPlace(value);
               }
-            }}
-            onInputChange={handleInputChange}
-            renderOption={(props, option) => {
+            } }
+            onInputChange={ handleInputChange }
+            renderOption={ (props, option) => {
               const { key, ...optionProps } = props;
               const matches =
                 option.structured_formatting.main_text_matched_substrings || [];
 
               const parts = parse(
                 option.structured_formatting.main_text,
-                matches.map((match) => [
+                matches.map(match => [
                   match.offset,
-                  match.offset + match.length,
+                  match.offset + match.length
                 ])
               );
               return (
-                <li key={key} {...optionProps}>
-                  <Grid container sx={{ alignItems: "center" }}>
-                    <Grid item sx={{ display: "flex", width: 44 }}>
-                      <LocationOnIcon sx={{ color: "text.secondary" }} />
+                <li key={ key } { ...optionProps }>
+                  <Grid container sx={ { alignItems: "center" } }>
+                    <Grid item sx={ { display: "flex", width: 44 } }>
+                      <LocationOnIcon sx={ { color: "text.secondary" } } />
                     </Grid>
                     <Grid
                       item
-                      sx={{
+                      sx={ {
                         width: "calc(100% - 44px)",
-                        wordWrap: "break-word",
-                      }}
+                        wordWrap: "break-word"
+                      } }
                     >
-                      {parts.map((part, index) => (
+                      { parts.map((part, index) => (
                         <Box
-                          key={index}
+                          key={ index }
                           component="span"
-                          sx={{
-                            fontWeight: part.highlight ? "bold" : "regular",
-                          }}
+                          sx={ {
+                            fontWeight: part.highlight ? "bold" : "regular"
+                          } }
                         >
-                          {part.text}
+                          { part.text }
                         </Box>
-                      ))}
+                      )) }
                       <Typography
                         variant="body2"
-                        sx={{ color: "text.secondary" }}
+                        sx={ { color: "text.secondary" } }
                       >
-                        {option.structured_formatting.secondary_text}
+                        { option.structured_formatting.secondary_text }
                       </Typography>
                     </Grid>
                   </Grid>
                 </li>
               );
-            }}
-            renderInput={(params) => (
+            } }
+            renderInput={ params => (
               <TextField
-                {...params}
+                { ...params }
                 label="Lieu"
                 name="Location"
                 variant="outlined"
                 fullWidth
                 margin="normal"
-                InputProps={{
+                InputProps={ {
                   ...params.InputProps,
                   endAdornment: (
                     <>
-                      {loading ? (
-                        <CircularProgress color="inherit" size={20} />
-                      ) : null}
-                      {params.InputProps.endAdornment}
+                      { loading ? (
+                        <CircularProgress color="inherit" size={ 20 } />
+                      ) : null }
+                      { params.InputProps.endAdornment }
                     </>
-                  ),
-                }}
+                  )
+                } }
               />
-            )}
+            ) }
           />
         </form>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Annuler</Button>
-        <Button onClick={handleSubmit} variant="contained" color="primary">
+        <Button onClick={ onClose }>Annuler</Button>
+        <Button onClick={ handleSubmit } variant="contained" color="primary">
           Enregistrer
         </Button>
       </DialogActions>

@@ -1,22 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+
 import {
-  collection,
-  getDocs,
-  addDoc,
-  deleteDoc,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
-import { db } from "../firebase";
-import { getAuth } from "firebase/auth";
-import {
-  TextField,
-  Button,
   Box,
-  Typography,
+  Button,
   Container,
   Paper,
+  TextField,
+  Typography
 } from "@mui/material";
+import { getAuth } from "firebase/auth";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  updateDoc
+} from "firebase/firestore";
+
+import { db } from "../firebase";
 
 const RejectionReasons = () => {
   const [reasons, setReasons] = useState([]);
@@ -29,9 +31,9 @@ const RejectionReasons = () => {
       if (user) {
         const reasonsCollection = collection(db, `users/${user.uid}/rejectionReasons`);
         const reasonsSnapshot = await getDocs(reasonsCollection);
-        const reasonsList = reasonsSnapshot.docs.map((doc) => ({
+        const reasonsList = reasonsSnapshot.docs.map(doc => ({
           id: doc.id,
-          name: doc.data().name,
+          name: doc.data().name
         }));
         setReasons(reasonsList);
       }
@@ -43,24 +45,24 @@ const RejectionReasons = () => {
   const handleAddReason = async () => {
     if (newReason) {
       const newReasonRef = await addDoc(collection(db, `users/${user.uid}/rejectionReasons`), {
-        name: newReason,
+        name: newReason
       });
       setReasons([...reasons, { id: newReasonRef.id, name: newReason }]);
       setNewReason("");
     }
   };
 
-  const handleDeleteReason = async (id) => {
+  const handleDeleteReason = async id => {
     await deleteDoc(doc(db, `users/${user.uid}/rejectionReasons/${id}`));
-    setReasons(reasons.filter((reason) => reason.id !== id));
+    setReasons(reasons.filter(reason => reason.id !== id));
   };
 
   const handleUpdateReason = async (id, newReasonValue) => {
     await updateDoc(doc(db, `users/${user.uid}/rejectionReasons/${id}`), {
-      name: newReasonValue,
+      name: newReasonValue
     });
     setReasons(
-      reasons.map((reason) =>
+      reasons.map(reason =>
         reason.id === id ? { ...reason, name: newReasonValue } : reason
       )
     );
@@ -68,42 +70,42 @@ const RejectionReasons = () => {
 
   return (
     <Container component="main" maxWidth="sm">
-      <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
+      <Paper elevation={ 3 } sx={ { p: 4, mt: 4 } }>
         <Typography variant="h5" gutterBottom>
           Gérer les Motifs de Refus
         </Typography>
-        {reasons.map((reason) => (
-          <Box key={reason.id} display="flex" alignItems="center" mb={2}>
+        { reasons.map(reason => (
+          <Box key={ reason.id } display="flex" alignItems="center" mb={ 2 }>
             <TextField
               fullWidth
               variant="outlined"
-              value={reason.name}
-              onChange={(e) => handleUpdateReason(reason.id, e.target.value)}
+              value={ reason.name }
+              onChange={ e => handleUpdateReason(reason.id, e.target.value) }
             />
             <Button
               variant="contained"
               color="secondary"
-              onClick={() => handleDeleteReason(reason.id)}
-              sx={{ ml: 2 }}
+              onClick={ () => handleDeleteReason(reason.id) }
+              sx={ { ml: 2 } }
             >
               Supprimer
             </Button>
           </Box>
-        ))}
+        )) }
 
-        <Box display="flex" alignItems="center" mt={2}>
+        <Box display="flex" alignItems="center" mt={ 2 }>
           <TextField
             fullWidth
             variant="outlined"
             label="Ajouter un motif de refus"
-            value={newReason}
-            onChange={(e) => setNewReason(e.target.value)}
+            value={ newReason }
+            onChange={ e => setNewReason(e.target.value) }
           />
           <Button
             variant="contained"
             color="primary"
-            onClick={handleAddReason}
-            sx={{ ml: 2 }}
+            onClick={ handleAddReason }
+            sx={ { ml: 2 } }
           >
             Ajouter
           </Button>

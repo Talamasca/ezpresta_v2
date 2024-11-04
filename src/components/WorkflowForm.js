@@ -1,21 +1,23 @@
-import React, { useState, useEffect } from "react";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "../firebase";
-import { getAuth } from "firebase/auth";
+import React, { useEffect, useState } from "react";
+
+import CheckIcon from "@mui/icons-material/Check";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import {
-  TextField,
   Button,
+  DialogActions,
+  IconButton,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
-  IconButton,
-  DialogActions,
+  TextField
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import CheckIcon from "@mui/icons-material/Check";
+import { getAuth } from "firebase/auth";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+
+import { db } from "../firebase";
 
 const WorkflowForm = ({ workflowId, onClose }) => {
   const [workflowName, setWorkflowName] = useState("");
@@ -50,8 +52,8 @@ const WorkflowForm = ({ workflowId, onClose }) => {
     }
   };
 
-  const handleDeleteTask = (taskId) => {
-    setTasks(tasks.filter((task) => task.id !== taskId));
+  const handleDeleteTask = taskId => {
+    setTasks(tasks.filter(task => task.id !== taskId));
   };
 
   const handleEditTask = (taskId, taskLabel) => {
@@ -61,7 +63,7 @@ const WorkflowForm = ({ workflowId, onClose }) => {
 
   const handleSaveEditedTask = () => {
     setTasks(
-      tasks.map((task) =>
+      tasks.map(task =>
         task.id === editTaskId ? { ...task, label: editedTaskLabel } : task
       )
     );
@@ -77,38 +79,38 @@ const WorkflowForm = ({ workflowId, onClose }) => {
       const workflowRef = doc(db, `users/${userId}/workflows`, workflowId);
       await updateDoc(workflowRef, {
         name: workflowName,
-        tasks: tasks,
+        tasks: tasks
       });
       onClose(); // Fermer la modal après sauvegarde
     }
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={ { padding: "20px" } }>
       <h2>Éditer Workflow</h2>
       <TextField
         label="Nom du Workflow"
-        value={workflowName}
-        onChange={(e) => setWorkflowName(e.target.value)}
+        value={ workflowName }
+        onChange={ e => setWorkflowName(e.target.value) }
         fullWidth
         margin="normal"
       />
       <TextField
         label="Nouvelle tâche"
-        value={newTask}
-        onChange={(e) => setNewTask(e.target.value)}
+        value={ newTask }
+        onChange={ e => setNewTask(e.target.value) }
         fullWidth
         margin="normal"
       />
       <Button
-        onClick={handleAddTask}
+        onClick={ handleAddTask }
         variant="contained"
-        style={{ marginBottom: "20px", marginTop: "10px" }}
+        style={ { marginBottom: "20px", marginTop: "10px" } }
       >
         Ajouter Tâche
       </Button>
 
-      {/* Tableau des tâches */}
+      { /* Tableau des tâches */ }
       <Table>
         <TableHead>
           <TableRow>
@@ -117,47 +119,47 @@ const WorkflowForm = ({ workflowId, onClose }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {tasks.map((task) => (
-            <TableRow key={task.id}>
+          { tasks.map(task => (
+            <TableRow key={ task.id }>
               <TableCell>
-                {editTaskId === task.id ? (
+                { editTaskId === task.id ? (
                   <TextField
-                    value={editedTaskLabel}
-                    onChange={(e) => setEditedTaskLabel(e.target.value)}
+                    value={ editedTaskLabel }
+                    onChange={ e => setEditedTaskLabel(e.target.value) }
                     fullWidth
                   />
                 ) : (
                   task.label
-                )}
+                ) }
               </TableCell>
               <TableCell align="right">
-                {editTaskId === task.id ? (
-                  <IconButton onClick={handleSaveEditedTask}>
+                { editTaskId === task.id ? (
+                  <IconButton onClick={ handleSaveEditedTask }>
                     <CheckIcon />
                   </IconButton>
                 ) : (
                   <>
                     <IconButton
-                      onClick={() => handleEditTask(task.id, task.label)}
+                      onClick={ () => handleEditTask(task.id, task.label) }
                     >
                       <EditIcon />
                     </IconButton>
-                    <IconButton onClick={() => handleDeleteTask(task.id)}>
+                    <IconButton onClick={ () => handleDeleteTask(task.id) }>
                       <DeleteIcon />
                     </IconButton>
                   </>
-                )}
+                ) }
               </TableCell>
             </TableRow>
-          ))}
+          )) }
         </TableBody>
       </Table>
 
-      <DialogActions style={{ marginTop: "20px" }}>
-        <Button onClick={handleSave} variant="contained" color="primary">
+      <DialogActions style={ { marginTop: "20px" } }>
+        <Button onClick={ handleSave } variant="contained" color="primary">
           Sauvegarder Workflow
         </Button>
-        <Button onClick={onClose} variant="outlined" color="secondary">
+        <Button onClick={ onClose } variant="outlined" color="secondary">
           Annuler
         </Button>
       </DialogActions>

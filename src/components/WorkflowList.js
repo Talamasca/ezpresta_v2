@@ -1,26 +1,28 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import {
-  collection,
-  getDocs,
-  addDoc,
-  deleteDoc,
-  doc,
-} from "firebase/firestore";
-import { db } from "../firebase";
-import { getAuth } from "firebase/auth";
-import {
+  Button,
+  Dialog,
+  Divider,
+  IconButton,
   List,
   ListItem,
   ListItemText,
-  IconButton,
-  TextField,
-  Button,
-  Dialog,
   Paper,
-  Divider,
+  TextField
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
+import { getAuth } from "firebase/auth";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs
+} from "firebase/firestore";
+
+import { db } from "../firebase";
 import WorkflowForm from "./WorkflowForm"; // Le formulaire à afficher dans la modal
 
 const WorkflowList = () => {
@@ -37,14 +39,14 @@ const WorkflowList = () => {
         const userId = user.uid;
         const workflowsCollection = collection(db, `users/${userId}/workflows`);
         const workflowSnapshot = await getDocs(workflowsCollection);
-        const workflowList = workflowSnapshot.docs.map((doc) => ({
+        const workflowList = workflowSnapshot.docs.map(doc => ({
           id: doc.id,
           name: doc.data().name,
           tasksCount:
             doc.data().tasks && doc.data().tasks.length > 0
               ? doc.data().tasks.length
               : 0,
-          ...doc.data(),
+          ...doc.data()
         }));
         setWorkflows(workflowList);
       }
@@ -60,32 +62,32 @@ const WorkflowList = () => {
       const userId = user.uid;
       await addDoc(collection(db, `users/${userId}/workflows`), {
         name: newWorkflowName,
-        tasks: [],
+        tasks: []
       });
       setNewWorkflowName("");
       // Rafraîchir la liste après l'ajout
       const workflowSnapshot = await getDocs(
         collection(db, `users/${userId}/workflows`)
       );
-      const workflowList = workflowSnapshot.docs.map((doc) => ({
+      const workflowList = workflowSnapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data(),
+        ...doc.data()
       }));
       setWorkflows(workflowList);
     }
   };
 
-  const handleDeleteWorkflow = async (id) => {
+  const handleDeleteWorkflow = async id => {
     const auth = getAuth();
     const user = auth.currentUser;
     if (user) {
       const userId = user.uid;
       await deleteDoc(doc(db, `users/${userId}/workflows`, id));
-      setWorkflows(workflows.filter((workflow) => workflow.id !== id));
+      setWorkflows(workflows.filter(workflow => workflow.id !== id));
     }
   };
 
-  const handleEditWorkflow = (workflowId) => {
+  const handleEditWorkflow = workflowId => {
     setSelectedWorkflowId(workflowId);
     setOpenModal(true); // Ouvrir la modal
   };
@@ -98,62 +100,62 @@ const WorkflowList = () => {
   return (
     <div>
       <h2>Workflows existants</h2>
-      <Paper elevation={3} style={{ padding: "20px", marginBottom: "20px" }}>
+      <Paper elevation={ 3 } style={ { padding: "20px", marginBottom: "20px" } }>
         <List>
-          {workflows.map((workflow) => (
+          { workflows.map(workflow => (
             <>
-              <ListItem key={workflow.id}>
+              <ListItem key={ workflow.id }>
                 <ListItemText
-                  primary={`${workflow.name} - ${workflow.tasksCount} tâche(s)`}
+                  primary={ `${workflow.name} - ${workflow.tasksCount} tâche(s)` }
                 />
                 <IconButton
                   edge="end"
-                  onClick={() => handleEditWorkflow(workflow.id)}
+                  onClick={ () => handleEditWorkflow(workflow.id) }
                 >
                   <EditIcon />
                 </IconButton>
                 <IconButton
                   edge="end"
-                  onClick={() => handleDeleteWorkflow(workflow.id)}
+                  onClick={ () => handleDeleteWorkflow(workflow.id) }
                 >
                   <DeleteIcon />
                 </IconButton>
               </ListItem>
               <Divider />
             </>
-          ))}
+          )) }
         </List>
       </Paper>
 
-      <div style={{ marginBottom: "20px" }}>
+      <div style={ { marginBottom: "20px" } }>
         <TextField
           label="Nouveau Workflow"
-          value={newWorkflowName}
-          onChange={(e) => setNewWorkflowName(e.target.value)}
+          value={ newWorkflowName }
+          onChange={ e => setNewWorkflowName(e.target.value) }
           fullWidth
         />
         <Button
-          onClick={handleAddWorkflow}
+          onClick={ handleAddWorkflow }
           variant="contained"
-          style={{ marginTop: "10px" }}
+          style={ { marginTop: "10px" } }
         >
-        Créer un Workflow
+          Créer un Workflow
         </Button>
       </div>
 
-      {/* Modal pour l'édition d'un workflow */}
+      { /* Modal pour l'édition d'un workflow */ }
       <Dialog
-        open={openModal}
-        onClose={handleCloseModal}
+        open={ openModal }
+        onClose={ handleCloseModal }
         fullWidth
         maxWidth="sm"
       >
-        {selectedWorkflowId && (
+        { selectedWorkflowId && (
           <WorkflowForm
-            workflowId={selectedWorkflowId}
-            onClose={handleCloseModal}
+            workflowId={ selectedWorkflowId }
+            onClose={ handleCloseModal }
           />
-        )}
+        ) }
       </Dialog>
     </div>
   );
