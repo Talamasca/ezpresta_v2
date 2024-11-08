@@ -60,9 +60,7 @@ export default function ReservationTodo({ reservation }) {
       const workflowData = orderDoc.data().workflow;
       if (workflowData && workflowData.tasks) {
         setTasks(workflowData.tasks); // Charger les tâches depuis Firestore
-      } else {
-        enqueueSnackbar("Aucune tâche trouvée dans le workflow", { variant: "info" });
-      }
+      } 
     } else {
       enqueueSnackbar("Le document de la commande n'existe pas", { variant: "error" });
     }
@@ -255,7 +253,7 @@ export default function ReservationTodo({ reservation }) {
             <strong>Nom :</strong> { selectedTask?.label }
           </p>
           <p>
-            <strong>Date d'accomplissement :</strong> {
+            <strong>Date d&apos;accomplissement :</strong> {
               new Date(
                 selectedTask?.dateDone
               ).toLocaleString("fr-FR", {

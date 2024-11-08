@@ -81,12 +81,12 @@ const ValidateReservation = ({ reservation }) => {
         <DialogTitle>Confirmation de validation</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Cette prestation est actuellement annulée. Voulez-vous vraiment la valider et annuler l'annulation ?
+            Cette prestation est actuellement annulée. Voulez-vous vraiment la valider et annuler l&apos;annulation ?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={ handleCloseConfirmation } color="primary">Annuler</Button>
-          <Button onClick={ confirmValidation } color="primary" autoFocus>Confirmer</Button>
+          <Button onClick={ confirmValidation } color="primary" >Confirmer</Button>
         </DialogActions>
       </Dialog>
     </>

@@ -97,14 +97,24 @@ const PaymentManagement = ({ reservation }) => {
     setPaymentUpdates(updatedPaymentUpdates);
   };
 
+
   return (
     <>
-      <Tooltip title="Gérer les paiements">
-        <IconButton onClick={handleOpen}>
-          <Badge badgeContent={unpaidPaymentsCount} color="error">
-            <PaymentIcon color="primary" />
-          </Badge>
-        </IconButton>
+      <Tooltip
+        title={true === reservation.orderIsConfirmed 
+          ? "Gérer les paiements" 
+          : "Vous devez confirmer la prestation avant de gérer les paiements."}
+      >
+        <span> {/* Wrapping in a span to handle disabled IconButton styling */}
+          <IconButton
+            onClick={handleOpen}
+            disabled={!reservation.orderIsConfirmed} // Désactivation si la prestation n'est pas confirmée
+          >
+            <Badge badgeContent={unpaidPaymentsCount} color="secondary">
+              <PaymentIcon color={reservation.orderIsConfirmed ? "primary" : "disabled"} />
+            </Badge>
+          </IconButton>
+        </span>
       </Tooltip>
 
       <Dialog open={open} onClose={handleClose} fullWidth>

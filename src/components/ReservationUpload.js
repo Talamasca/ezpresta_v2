@@ -116,7 +116,7 @@ export default function ReservationUpload({ reservation }) {
       <Tooltip title="Upload">
         <IconButton onClick={ handleClickOpen }>
           <StyledBadge badgeContent={ files.length || 0 } color="secondary">
-            <CloudUploadIcon />
+            <CloudUploadIcon  color="primary"/>
           </StyledBadge>
         </IconButton>
       </Tooltip>

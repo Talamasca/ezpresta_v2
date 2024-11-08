@@ -27,9 +27,9 @@ import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
 
 import CategoryManager from "../components/CategoryManager";
 import ProductForm from "../components/ProductForm";
+import { getFormattedDuration, price } from "../components/utils";
 import { useAuth } from "../contexts/AuthContext";
 import { db } from "../firebase";
-import { getFormattedDuration, price } from "../utils";
 
 const Catalogue = () => {
   const { currentUser } = useAuth();

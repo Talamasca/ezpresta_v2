@@ -19,7 +19,7 @@ import {
 import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
 
 import { db } from "../firebase";
-import { getDuration, getFormattedDuration } from "../utils";
+import { getDuration, getFormattedDuration } from "./utils";
 
 const colors = [
   { name: "Rouge", value: "#ff0000" },

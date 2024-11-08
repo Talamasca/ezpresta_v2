@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { endOfYear, startOfYear } from "date-fns";
 import { useSnackbar } from "notistack";
 
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
@@ -32,11 +33,13 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
   orderBy,
-  query
-} from "firebase/firestore";
+  query,
+  where } from "firebase/firestore";
 
 import CustomerDetails from "../components/CustomerDetails";
+import FilterMenu from "../components/FilterMenu";
 import CancelReservation from "../components/ReservationCanceled";
 import ReservationICS from "../components/ReservationICS"; // Import du composant BookingIcal
 import PaymentManagement from "../components/ReservationPaymentManagement";
@@ -47,14 +50,28 @@ import ValidateReservation from "../components/ReservationValidate";
 import { useAuth } from "../contexts/AuthContext"; // Pour récupérer l'utilisateur connecté
 import { db } from "../firebase"; // Firebase Firestore instance
 
+
+
 const Agenda = () => {
   const { currentUser } = useAuth();
-  const [reservations, setReservations] = useState([]);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const { enqueueSnackbar } = useSnackbar();
+
+  // États pour les réservations et filtres
+  const [reservations, setReservations] = useState([]);
+  const [filteredReservations, setFilteredReservations] = useState([]);
+  const [filterUpcoming, setFilterUpcoming] = useState(false);
+  const [filterConfirmed, setFilterConfirmed] = useState(false);
+  const [filterPending, setFilterPending] = useState(false);
+  const [filterYear, setFilterYear] = useState(null);
+  const [filterUnpaid, setFilterUnpaid] = useState(false);  // Nouvel état pour "paiement en attente"
+
+  // Déterminer les dates de début et de fin de l'année actuelle
+  //const startOfCurrentYear = startOfYear(new Date());
+  //const endOfCurrentYear = endOfYear(new Date());
 
   // Fonction pour récupérer les informations supplémentaires (catalogue et client)
   const fetchAdditionalData = async reservation => {
@@ -93,12 +110,19 @@ const Agenda = () => {
     }
   };
 
+  /*
+    where("selectedDate", ">=", startOfCurrentYear.toISOString()),
+          where("selectedDate", "<=", endOfCurrentYear.toISOString()),  
+          */
+
+
   useEffect(() => {
     const fetchReservations = async () => {
       try {
         const q = query(
           collection(db, `users/${currentUser.uid}/orders`),
-          orderBy("selectedDate", "asc")
+          orderBy("selectedDate", "asc"),
+          limit(10)
         );
         const querySnapshot = await getDocs(q);
         const reservationsData = [];
@@ -114,15 +138,37 @@ const Agenda = () => {
 
         setReservations(reservationsData);
       } catch (error) {
-        console.error(
-          "Erreur lors de la récupération des réservations :",
-          error
-        );
+        console.log("Erreur lors de la récupération des réservations :", error);
       }
     };
 
     fetchReservations();
   }, [currentUser]);
+
+  // Application des filtres dynamiques
+  useEffect(() => {
+    const today = new Date();
+    const filtered = reservations.filter(reservation => {
+      const reservationDate = new Date(reservation.selectedDate);
+
+      // Filtre pour prestations à venir
+      if (filterUpcoming && reservationDate <= today) return false;
+
+      // Filtre pour prestations validées
+      if (filterConfirmed && !reservation.orderIsConfirmed) return false;
+
+      // Filtre pour prestations en attente
+      if (
+        filterPending &&
+        (true === reservation.orderIsConfirmed || true === reservation.orderIsCanceled)
+      )
+        return false;
+
+
+    });
+
+    setFilteredReservations(filtered);
+  }, [reservations, filterUpcoming, filterConfirmed, filterPending, filterUnpaid, filterYear]);
 
 
   // Fonction pour supprimer une réservation
@@ -200,8 +246,20 @@ const Agenda = () => {
 
   return (
     <div>
-      <h1>Agenda des Réservations</h1>
-
+      <h1>Agenda</h1>
+      {/* Menu de filtre */}
+      <FilterMenu
+        filterUpcoming={filterUpcoming}
+        setFilterUpcoming={setFilterUpcoming}
+        filterConfirmed={filterConfirmed}
+        setFilterConfirmed={setFilterConfirmed}
+        filterPending={filterPending}
+        setFilterPending={setFilterPending}
+        filterYear={filterYear}
+        setFilterYear={setFilterYear}
+        filterUnpaid={filterUnpaid}  // Passez l'état à FilterMenu
+        setFilterUnpaid={setFilterUnpaid}  // Passez le setter à FilterMenu
+      />
       <TableContainer component={ Paper }>
         <Table>
           <TableHead>
@@ -215,7 +273,7 @@ const Agenda = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            { reservations.map(reservation => (
+            { filteredReservations.map(reservation => (
               <React.Fragment key={ reservation.id }>
                 <TableRow>
                   <TableCell>

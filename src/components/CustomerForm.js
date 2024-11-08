@@ -177,7 +177,7 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
   return (
     <Dialog open={ open } onClose={ handleClose } maxWidth="md" fullWidth>
       <DialogTitle>
-        { customerId ? "Edit Customer" : "Create Customer" }
+        { customerId ? "Éditer la fiche cliente" : "Créer une fiche cliente" }
       </DialogTitle>
       <DialogContent>
         <Box component="form" onSubmit={ handleSubmit } sx={ { mt: 2 } }>
@@ -257,6 +257,7 @@ const CustomerForm = ({ open, handleClose, customerId, userId, onSave }) => {
               />
             </Grid>
             <Grid item xs={ 12 } sm={ 6 }>
+              Comment avez-vous entendu parler de nous ?
               <Select
                 margin="normal"
                 fullWidth

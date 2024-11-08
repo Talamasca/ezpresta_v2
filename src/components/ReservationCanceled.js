@@ -79,7 +79,7 @@ const CancelReservation = ({ reservation }) => {
             Annuler
           </Button>
           <Button onClick={ handleCancelOrder } color="error">
-            Confirmer l'annulation
+            Confirmer l&apos;annulation
           </Button>
         </DialogActions>
       </Dialog>

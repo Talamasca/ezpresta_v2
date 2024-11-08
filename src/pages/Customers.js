@@ -151,6 +151,14 @@ const Customers = () => {
     );
   }
 
+  const fullFirstName = customer => {
+    if (customer.company) {
+      return `(${customer.company})  ${customer.firstname}`;
+    }
+    return `${customer.firstname}`;
+  };
+
+
   return (
     <>
       <Typography
@@ -172,12 +180,9 @@ const Customers = () => {
         <Table sx={ { minWidth: 650 } }>
           <TableHead>
             <TableRow>
-              <TableCell>Company</TableCell>
+              <TableCell>Nom Prénom</TableCell>
               <TableCell>Email</TableCell>
-              <TableCell>First Name</TableCell>
-              <TableCell>Phone</TableCell>
-              <TableCell>Address</TableCell>
-              <TableCell>Note</TableCell>
+              <TableCell>Téléphone</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -185,24 +190,15 @@ const Customers = () => {
             { customers.map(customer => (
               <TableRow key={ customer.id }>
                 <TableCell sx={ { padding: theme => theme.spacing(2) } }>
-                  { customer.company }
+                  { fullFirstName(customer) }
                 </TableCell>
                 <TableCell sx={ { padding: theme => theme.spacing(2) } }>
                   { customer.email }
                 </TableCell>
                 <TableCell sx={ { padding: theme => theme.spacing(2) } }>
-                  { customer.firstname }
-                </TableCell>
-                <TableCell sx={ { padding: theme => theme.spacing(2) } }>
                   <a href={ phoneGetURI(customer?.phone) }>
                     { formatPhoneNumber(customer?.phone) }
                   </a>
-                </TableCell>
-                <TableCell sx={ { padding: theme => theme.spacing(2) } }>
-                  { customer.userAddress }
-                </TableCell>
-                <TableCell sx={ { padding: theme => theme.spacing(2) } }>
-                  { customer.userNote }
                 </TableCell>
                 <TableCell sx={ { padding: theme => theme.spacing(2) } }>
                   <IconButton
