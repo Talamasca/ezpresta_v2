@@ -72,11 +72,6 @@ const Agenda = () => {
     year: new Date().getFullYear()
   });
 
-
-  // Déterminer les dates de début et de fin de l'année actuelle
-  //const startOfCurrentYear = startOfYear(new Date());
-  //const endOfCurrentYear = endOfYear(new Date());
-
   // Fonction pour récupérer les informations supplémentaires (catalogue et client)
   const fetchAdditionalData = async reservation => {
     try {
@@ -165,33 +160,6 @@ const Agenda = () => {
 
     fetchReservations();
   }, [currentUser, filterOptions]);
-
-  // Application des filtres dynamiques
-  // useEffect(() => {
-  //   const today = new Date();
-  //   console.log("reservations", reservations);
-  //   const filtered = reservations.filter(reservation => {
-  //     const reservationDate = new Date(reservation.selectedDate);
-
-  //     // Filtre pour prestations à venir
-  //     if (filterUpcoming && reservationDate <= today) return false;
-
-  //     // Filtre pour prestations validées
-  //     if (filterConfirmed && !reservation.orderIsConfirmed) return false;
-
-  //     // Filtre pour prestations en attente
-  //     if (
-  //       filterPending &&
-  //       (true === reservation.orderIsConfirmed || true === reservation.orderIsCanceled)
-  //     )
-  //       return false;
-
-
-  //   });
-  //   console.log("Réservations filtrées :", filtered);
-  //   setFilteredReservations(filtered);
-  // }, [reservations, filterUpcoming, filterConfirmed, filterPending, filterUnpaid, filterYear]);
-
 
   // Fonction pour supprimer une réservation
   const handleDeleteReservation = async (reservationId, reservation) => {
