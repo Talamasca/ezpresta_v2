@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { RotatingLines } from "react-loader-spinner";
 import { endOfYear, startOfYear } from "date-fns";
 import { useSnackbar } from "notistack";
 
@@ -59,15 +60,18 @@ const Agenda = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const { enqueueSnackbar } = useSnackbar();
+  const [loading, setLoading] = useState(true);  // État de chargement
 
   // États pour les réservations et filtres
   const [reservations, setReservations] = useState([]);
-  const [filteredReservations, setFilteredReservations] = useState([]);
-  const [filterUpcoming, setFilterUpcoming] = useState(false);
-  const [filterConfirmed, setFilterConfirmed] = useState(false);
-  const [filterPending, setFilterPending] = useState(false);
-  const [filterYear, setFilterYear] = useState(null);
-  const [filterUnpaid, setFilterUnpaid] = useState(false);  // Nouvel état pour "paiement en attente"
+  const [filterOptions, setFilterOptions] = useState({
+    upcoming: false,
+    confirmed: false,
+    pending: false,
+    unpaid: false,
+    year: new Date().getFullYear()
+  });
+
 
   // Déterminer les dates de début et de fin de l'année actuelle
   //const startOfCurrentYear = startOfYear(new Date());
@@ -110,65 +114,83 @@ const Agenda = () => {
     }
   };
 
-  /*
-    where("selectedDate", ">=", startOfCurrentYear.toISOString()),
-          where("selectedDate", "<=", endOfCurrentYear.toISOString()),  
-          */
-
-
   useEffect(() => {
     const fetchReservations = async () => {
-      try {
-        const q = query(
-          collection(db, `users/${currentUser.uid}/orders`),
-          orderBy("selectedDate", "asc"),
-          limit(10)
+      setLoading(true);  // Démarrer le chargement
+      const ordersRef = collection(db, `users/${currentUser.uid}/orders`);
+      let reservationsQuery;
+
+      if (filterOptions.year) {
+        const startOfSelectedYear = startOfYear(new Date(filterOptions.year, 0, 1)).toISOString();
+        const endOfSelectedYear = endOfYear(new Date(filterOptions.year, 0, 1)).toISOString();
+        reservationsQuery = query(
+          ordersRef,
+          where("selectedDate", ">=", startOfSelectedYear),
+          where("selectedDate", "<", endOfSelectedYear),
+          orderBy("selectedDate", "asc")
         );
-        const querySnapshot = await getDocs(q);
+      } else {
+        reservationsQuery = query(ordersRef, orderBy("selectedDate", "asc"));
+      }
+
+      try {
+        const querySnapshot = await getDocs(reservationsQuery);
         const reservationsData = [];
 
         for (const doc of querySnapshot.docs) {
-          const reservation = {
-            id: doc.id,
-            ...doc.data()
-          };
+          const reservation = { id: doc.id, ...doc.data() };
           const enhancedReservation = await fetchAdditionalData(reservation);
           reservationsData.push(enhancedReservation);
         }
 
-        setReservations(reservationsData);
+        const filteredData = reservationsData.filter(reservation => {
+          const isUpcoming = filterOptions.upcoming ? new Date(reservation.selectedDate) > new Date() : true;
+          const isConfirmed = filterOptions.confirmed ? reservation.orderIsConfirmed : true;
+          const isPending = filterOptions.pending
+            ? !reservation.orderIsConfirmed && !reservation.orderIsCanceled
+            : true;
+          const isUnpaid = filterOptions.unpaid
+            ? reservation.paymentDetails.some(payment => !payment.isPaid && reservation.orderIsConfirmed)
+            : true;
+          return isUpcoming && isConfirmed && isPending && isUnpaid;
+        });
+
+        setReservations(filteredData);
       } catch (error) {
-        console.log("Erreur lors de la récupération des réservations :", error);
+        enqueueSnackbar("Erreur lors du chargement des réservations", { variant: "error" });
+      } finally {
+        setLoading(false);  // Arrêter le chargement
       }
     };
 
     fetchReservations();
-  }, [currentUser]);
+  }, [currentUser, filterOptions]);
 
   // Application des filtres dynamiques
-  useEffect(() => {
-    const today = new Date();
-    const filtered = reservations.filter(reservation => {
-      const reservationDate = new Date(reservation.selectedDate);
+  // useEffect(() => {
+  //   const today = new Date();
+  //   console.log("reservations", reservations);
+  //   const filtered = reservations.filter(reservation => {
+  //     const reservationDate = new Date(reservation.selectedDate);
 
-      // Filtre pour prestations à venir
-      if (filterUpcoming && reservationDate <= today) return false;
+  //     // Filtre pour prestations à venir
+  //     if (filterUpcoming && reservationDate <= today) return false;
 
-      // Filtre pour prestations validées
-      if (filterConfirmed && !reservation.orderIsConfirmed) return false;
+  //     // Filtre pour prestations validées
+  //     if (filterConfirmed && !reservation.orderIsConfirmed) return false;
 
-      // Filtre pour prestations en attente
-      if (
-        filterPending &&
-        (true === reservation.orderIsConfirmed || true === reservation.orderIsCanceled)
-      )
-        return false;
+  //     // Filtre pour prestations en attente
+  //     if (
+  //       filterPending &&
+  //       (true === reservation.orderIsConfirmed || true === reservation.orderIsCanceled)
+  //     )
+  //       return false;
 
 
-    });
-
-    setFilteredReservations(filtered);
-  }, [reservations, filterUpcoming, filterConfirmed, filterPending, filterUnpaid, filterYear]);
+  //   });
+  //   console.log("Réservations filtrées :", filtered);
+  //   setFilteredReservations(filtered);
+  // }, [reservations, filterUpcoming, filterConfirmed, filterPending, filterUnpaid, filterYear]);
 
 
   // Fonction pour supprimer une réservation
@@ -247,162 +269,164 @@ const Agenda = () => {
   return (
     <div>
       <h1>Agenda</h1>
-      {/* Menu de filtre */}
-      <FilterMenu
-        filterUpcoming={filterUpcoming}
-        setFilterUpcoming={setFilterUpcoming}
-        filterConfirmed={filterConfirmed}
-        setFilterConfirmed={setFilterConfirmed}
-        filterPending={filterPending}
-        setFilterPending={setFilterPending}
-        filterYear={filterYear}
-        setFilterYear={setFilterYear}
-        filterUnpaid={filterUnpaid}  // Passez l'état à FilterMenu
-        setFilterUnpaid={setFilterUnpaid}  // Passez le setter à FilterMenu
-      />
-      <TableContainer component={ Paper }>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell />
-              <TableCell>Type de prestation</TableCell>
-              <TableCell>Date de la prestation</TableCell>
-              <TableCell>Nom du client</TableCell>
-              <TableCell>Prix total</TableCell>
-              <TableCell>Lieu principal</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            { filteredReservations.map(reservation => (
-              <React.Fragment key={ reservation.id }>
-                <TableRow>
-                  <TableCell>
-                    <IconButton
-                      aria-label="expand row"
-                      size="small"
-                      onClick={ () => toggleMenu(reservation.id) }
-                    >
-                      { openMenuId === reservation.id ? (
-                        <KeyboardArrowUpIcon />
-                      ) : (
-                        <KeyboardArrowDownIcon />
-                      ) }
-                    </IconButton>
-                  </TableCell>
-                  <TableCell>{ reservation.productType }</TableCell>
-                  <TableCell>
-                    { new Date(reservation.selectedDate).toLocaleString(
-                      "fr-FR",
-                      {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                        weekday: "long"
-                      }
-                    ) }
-                  </TableCell>
-                  <TableCell>
-                    { reservation.clientName }
-                    <IconButton
-                      onClick={ () =>
-                        handleOpenCustomerDialog(reservation.client_id)
-                      }
-                    >
-                      <AccountBoxIcon />
-                    </IconButton>
-                  </TableCell>
-                  <TableCell>{ reservation.totalPrice } €</TableCell>
-                  <TableCell>
-                    { reservation.locations && reservation.locations.length > 0
-                      ? reservation.locations[0].locationWhere.slice(0, 60) ||
-                        "Lieu non défini"
-                      : "Lieu non défini" }
-                    { reservation.locations && reservation.locations[0]?.place_id && (
-                      <IconButton component="a" href={ `https://www.google.com/maps/place/?q=place_id:${reservation.locations[0].place_id}` } target="_blank" rel="noopener noreferrer" >
-                        <MapIcon />
+
+      <FilterMenu setFilterOptions={setFilterOptions} currentYear={filterOptions.year} />
+
+      {loading ? (
+        <Box display="flex" justifyContent="center" alignItems="center" height="60vh">
+          <RotatingLines
+            strokeColor="blue"
+            strokeWidth="5"
+            animationDuration="0.75"
+            width="96"
+            visible={true}
+          />
+        </Box>
+      ) : (
+        <TableContainer component={ Paper }>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell />
+                <TableCell>Type de prestation</TableCell>
+                <TableCell>Date de la prestation</TableCell>
+                <TableCell>Nom du client</TableCell>
+                <TableCell>Prix total</TableCell>
+                <TableCell>Lieu principal</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              { reservations.map(reservation => (
+                <React.Fragment key={ reservation.id }>
+                  <TableRow>
+                    <TableCell>
+                      <IconButton
+                        aria-label="expand row"
+                        size="small"
+                        onClick={ () => toggleMenu(reservation.id) }
+                      >
+                        { openMenuId === reservation.id ? (
+                          <KeyboardArrowUpIcon />
+                        ) : (
+                          <KeyboardArrowDownIcon />
+                        ) }
                       </IconButton>
-                    ) }
-                  </TableCell>
-                </TableRow>
+                    </TableCell>
+                    <TableCell>{ reservation.productType }</TableCell>
+                    <TableCell>
+                      { new Date(reservation.selectedDate).toLocaleString(
+                        "fr-FR",
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          weekday: "long"
+                        }
+                      ) }
+                    </TableCell>
+                    <TableCell>
+                      { reservation.clientName }
+                      <IconButton
+                        onClick={ () =>
+                          handleOpenCustomerDialog(reservation.client_id)
+                        }
+                      >
+                        <AccountBoxIcon />
+                      </IconButton>
+                    </TableCell>
+                    <TableCell>{ reservation.totalPrice } €</TableCell>
+                    <TableCell>
+                      { reservation.locations && reservation.locations.length > 0
+                        ? reservation.locations[0].locationWhere.slice(0, 60) ||
+                        "Lieu non défini"
+                        : "Lieu non défini" }
+                      { reservation.locations && reservation.locations[0]?.place_id && (
+                        <IconButton component="a" href={ `https://www.google.com/maps/place/?q=place_id:${reservation.locations[0].place_id}` } target="_blank" rel="noopener noreferrer" >
+                          <MapIcon />
+                        </IconButton>
+                      ) }
+                    </TableCell>
+                  </TableRow>
 
-                { /* Menu d'actions */ }
-                <TableRow>
-                  <TableCell
-                    style={ { paddingBottom: 0, paddingTop: 0 } }
-                    colSpan={ 6 }
-                  >
-                    <Collapse
-                      in={ openMenuId === reservation.id }
-                      timeout="auto"
-                      unmountOnExit
+                  { /* Menu d'actions */ }
+                  <TableRow>
+                    <TableCell
+                      style={ { paddingBottom: 0, paddingTop: 0 } }
+                      colSpan={ 6 }
                     >
-                      <Box margin={ 1 }>
-                        <div style={ { textAlign: "center" } }>
+                      <Collapse
+                        in={ openMenuId === reservation.id }
+                        timeout="auto"
+                        unmountOnExit
+                      >
+                        <Box margin={ 1 }>
+                          <div style={ { textAlign: "center" } }>
                           
-                          <span>
-                            <ValidateReservation reservation={ reservation } />
-                          </span>
-                          
-                          <span aria-label="Annulation de la réservation">
-                            <CancelReservation reservation={ reservation } />
-                          </span>
-
-                          <span aria-label="Calendrier">
-                            { /* Export ICS*/ }
-                            <ReservationICS reservation={ reservation } />
-                          </span>
-                          <span aria-label="Gestion des paiements">
-                            <PaymentManagement reservation={ reservation } />
-                          </span>
-                          <span aria-label="Todo list">
-                            { /* Export TODO */ }
-                            <ReservationTodo reservation={ reservation } />
-                          </span>
-                          <span aria-label="Todo list">
-                            { /* Export TODO */ }
-                            <ReservationUpload reservation={ reservation } />
-                          </span>
-                          <span>
-                            <PDFInvoiceGenerator reservation={ reservation } />
-                          </span>
-                          <Tooltip
-                            title={
-                              reservation.orderIsConfirmed
-                                ? "Vous ne pouvez pas effacer une prestation validée"
-                                : "Supprimer la prestation"
-                            }
-                          >
                             <span>
-                              <IconButton
-                                onClick={ () =>
-                                  reservation.orderIsConfirmed
-                                    ? enqueueSnackbar(
-                                      "Vous ne pouvez pas effacer une prestation validée",
-                                      { variant: "error" }
-                                    )
-                                    : handleOpenDialog(reservation)
-                                }
-                              >
-                                <DeleteIcon
-                                  color={
-                                    reservation.orderIsConfirmed
-                                      ? "disabled"
-                                      : "primary"
-                                  }
-                                />
-                              </IconButton>
+                              <ValidateReservation reservation={ reservation } />
                             </span>
-                          </Tooltip>
-                        </div>
-                      </Box>
-                    </Collapse>
-                  </TableCell>
-                </TableRow>
-              </React.Fragment>
-            )) }
-          </TableBody>
-        </Table>
-      </TableContainer>
+                          
+                            <span aria-label="Annulation de la réservation">
+                              <CancelReservation reservation={ reservation } />
+                            </span>
+
+                            <span aria-label="Calendrier">
+                              { /* Export ICS*/ }
+                              <ReservationICS reservation={ reservation } />
+                            </span>
+                            <span aria-label="Gestion des paiements">
+                              <PaymentManagement reservation={ reservation } />
+                            </span>
+                            <span aria-label="Todo list">
+                              { /* Export TODO */ }
+                              <ReservationTodo reservation={ reservation } />
+                            </span>
+                            <span aria-label="Todo list">
+                              { /* Export TODO */ }
+                              <ReservationUpload reservation={ reservation } />
+                            </span>
+                            <span>
+                              <PDFInvoiceGenerator reservation={ reservation } />
+                            </span>
+                            <Tooltip
+                              title={
+                                reservation.orderIsConfirmed
+                                  ? "Vous ne pouvez pas effacer une prestation validée"
+                                  : "Supprimer la prestation"
+                              }
+                            >
+                              <span>
+                                <IconButton
+                                  onClick={ () =>
+                                    reservation.orderIsConfirmed
+                                      ? enqueueSnackbar(
+                                        "Vous ne pouvez pas effacer une prestation validée",
+                                        { variant: "error" }
+                                      )
+                                      : handleOpenDialog(reservation)
+                                  }
+                                >
+                                  <DeleteIcon
+                                    color={
+                                      reservation.orderIsConfirmed
+                                        ? "disabled"
+                                        : "primary"
+                                    }
+                                  />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          </div>
+                        </Box>
+                      </Collapse>
+                    </TableCell>
+                  </TableRow>
+                </React.Fragment>
+              )) }
+            </TableBody>
+          </Table>
+        </TableContainer>
+      ) }
 
       { /* Boîte de dialogue pour les détails du client */ }
       <CustomerDetails

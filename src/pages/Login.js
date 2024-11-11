@@ -15,6 +15,7 @@ import {
   Typography
 } from "@mui/material";
 
+import EZlogo from "../assets/EZpresta-logo.png"; // Importer l'image du logo
 import { useAuth } from "../contexts/AuthContext";
 
 const Login = () => {
@@ -56,19 +57,12 @@ const Login = () => {
     >
       <Paper elevation={ 3 } sx={ { padding: 4, maxWidth: 400 } }>
         <Box display="flex" flexDirection="column" alignItems="center">
-          <Typography variant="h3" gutterBottom>
-            Ez Presta
-          </Typography>
-          <Typography variant="subtitle1" gutterBottom>
-            la gestion simplifiée de votre entreprise
-          </Typography>
+
+          <img src={EZlogo} alt="Ez Presta" style={{ width: "300px", marginBottom: "16px" }} />
 
           <Avatar sx={ { m: 1, bgcolor: "secondary.main" } }>
             <LockOutlinedIcon />
           </Avatar>
-          <Typography variant="h6" gutterBottom>
-            Se connecter à Ez Presta
-          </Typography>
         </Box>
         <Box component="form" onSubmit={ handleSubmit } sx={ { mt: 1 } }>
           <TextField
