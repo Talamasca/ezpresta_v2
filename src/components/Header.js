@@ -13,7 +13,9 @@ import {
   Typography
 } from "@mui/material";
 
+import EZlogoTransparent from "../assets/EZpresta-logo-trans.png";
 import { useAuth } from "../contexts/AuthContext";
+
 
 const Header = ({ toggleTheme, darkMode }) => {
   const { currentUser, logout } = useAuth();
@@ -36,13 +38,10 @@ const Header = ({ toggleTheme, darkMode }) => {
       <Toolbar>
         <Box display="flex" alignItems="center" sx={ { flexGrow: 1 } }>
           <img
-            src="path_to_logo"
+            src={ EZlogoTransparent }
             alt="EzPresta Logo"
-            style={ { height: 40, marginRight: 16 } }
+            style={ { height: 45, marginRight: 16 } }
           />
-          <Typography variant="h6" component="div">
-            EzPresta
-          </Typography>
         </Box>
         <Switch checked={ darkMode } onChange={ toggleTheme } />
         { currentUser && (

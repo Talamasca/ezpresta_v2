@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { RotatingLines } from "react-loader-spinner";
+import { useNavigate } from "react-router-dom";
 import { endOfYear, startOfYear } from "date-fns";
 import { useSnackbar } from "notistack";
 
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
 //import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DeleteIcon from "@mui/icons-material/Delete"; // Import de l'icône de suppression
+import EditIcon from "@mui/icons-material/Edit";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import MapIcon from "@mui/icons-material/Map";
@@ -28,6 +30,7 @@ import {
   TableRow,
   Tooltip
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import {
   collection,
   deleteDoc,
@@ -39,18 +42,17 @@ import {
   query,
   where } from "firebase/firestore";
 
+import CancelReservation from "../components/Agenda/ReservationCanceled";
+import ReservationICS from "../components/Agenda/ReservationICS"; // Import du composant BookingIcal
+import PaymentManagement from "../components/Agenda/ReservationPaymentManagement";
+import PDFInvoiceGenerator from "../components/Agenda/ReservationPDF";
+import ReservationTodo from "../components/Agenda/ReservationTodo";
+import ReservationUpload from "../components/Agenda/ReservationUpload";
+import ValidateReservation from "../components/Agenda/ReservationValidate";
 import CustomerDetails from "../components/CustomerDetails";
 import FilterMenu from "../components/FilterMenu";
-import CancelReservation from "../components/ReservationCanceled";
-import ReservationICS from "../components/ReservationICS"; // Import du composant BookingIcal
-import PaymentManagement from "../components/ReservationPaymentManagement";
-import PDFInvoiceGenerator from "../components/ReservationPDF";
-import ReservationTodo from "../components/ReservationTodo";
-import ReservationUpload from "../components/ReservationUpload";
-import ValidateReservation from "../components/ReservationValidate";
 import { useAuth } from "../contexts/AuthContext"; // Pour récupérer l'utilisateur connecté
 import { db } from "../firebase"; // Firebase Firestore instance
-
 
 
 const Agenda = () => {
@@ -61,6 +63,9 @@ const Agenda = () => {
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(true);  // État de chargement
+  const theme = useTheme();
+  const navigate = useNavigate();
+
 
   // États pour les réservations et filtres
   const [reservations, setReservations] = useState([]);
@@ -266,7 +271,16 @@ const Agenda = () => {
             <TableBody>
               { reservations.map(reservation => (
                 <React.Fragment key={ reservation.id }>
-                  <TableRow>
+                  <TableRow
+                    style={{
+                      backgroundColor:
+                reservation.orderIsConfirmed
+                  ? theme.palette.mode === "dark"
+                    ? "darkslategrey"
+                    : "ivory"
+                  : "inherit"
+                    }}
+                  >
                     <TableCell>
                       <IconButton
                         aria-label="expand row"
@@ -336,6 +350,14 @@ const Agenda = () => {
                           
                             <span aria-label="Annulation de la réservation">
                               <CancelReservation reservation={ reservation } />
+                            </span>
+
+                            <span aria-label="Modification de la réservation">
+                              <IconButton
+                                onClick={() => navigate("/reservation", { state: { reservationData: reservation } })}
+                              >
+                                <EditIcon />
+                              </IconButton>
                             </span>
 
                             <span aria-label="Calendrier">

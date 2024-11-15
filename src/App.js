@@ -24,6 +24,7 @@ import Customers from "./pages/Customers";
 import CustomerSource from "./pages/CustomerSource";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import RejectionReasons from "./pages/RejectionReasons";
 import Reservation from "./pages/Reservation";
 import Settings from "./pages/Settings";
@@ -37,7 +38,7 @@ const App = () => {
       mode: darkMode ? "dark" : "light",
       primary: {
         light: blue[300],
-        main: blue[500],
+        main: "#096dd9",//blue[500],
         dark: blue[700],
         darker: blue[900]
       },
@@ -89,6 +90,7 @@ const App = () => {
           <Router>
             <Routes>
               <Route path="/login" element={ <Login /> } />
+              <Route path="/register" element={ <Register /> } />
               <Route
                 path="*"
                 element={

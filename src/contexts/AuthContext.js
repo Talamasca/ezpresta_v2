@@ -4,10 +4,11 @@ import React, { useContext, useEffect, useState } from "react";
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  sendEmailVerification,
   signInWithEmailAndPassword,
   signOut
 } from "firebase/auth";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc,updateDoc } from "firebase/firestore";
 
 import { auth, db } from "../firebase";
 
@@ -22,7 +23,20 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const signup = (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password);
+    return createUserWithEmailAndPassword(auth, email, password).then(
+      async userCredential => {
+        const user = userCredential.user;
+        await setDoc(doc(db, "users", user.uid), {
+          email: user.email,
+          isActive: false, // Compte inactif par défaut
+          createdAt: new Date()
+        });
+
+        // Envoi de l'email de vérification
+        await sendEmailVerification(user);
+        return user;
+      }
+    );
   };
 
   const login = (email, password) => {
@@ -47,10 +61,17 @@ export const AuthProvider = ({ children }) => {
     if (docSnap.exists()) {
       const userData = docSnap.data();
       userData.uid = uid;
+
+      // Vérification si le compte est actif
+      if (!userData.isActive) {
+        await logout(); // Déconnexion immédiate si le compte n'est pas actif
+        throw new Error("Votre compte doit être validé.");
+      }
+
       localStorage.setItem("userData", JSON.stringify(userData));
       setCurrentUser(userData);
     } else {
-      console.log("No such document!");
+      throw new Error("Erreur de connexion : Document utilisateur introuvable.");
     }
   };
 
