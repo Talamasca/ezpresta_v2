@@ -1,11 +1,12 @@
 // Reservation.jsx
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, set } from "date-fns";
 import frLocale from "date-fns/locale/fr";
 import { useSnackbar } from "notistack";
 
 import { PersonAdd as PersonAddIcon } from "@mui/icons-material";
+import CachedIcon from "@mui/icons-material/Cached";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import EditIcon from "@mui/icons-material/Edit";
@@ -40,7 +41,7 @@ import { addDoc, collection, doc, getDocs, query, updateDoc } from "firebase/fir
 
 import AddDiscountDialog from "../components/Booking/AddDiscountDialog";
 import AddFeeDialog from "../components/Booking/AddFeeDialog";
-import PaymentDetails from "../components/Booking/PaymentDetails";
+//import PaymentDetails from "../components/Booking/PaymentDetails";
 import CustomerForm from "../components/CustomerForm";
 import LocationForm from "../components/LocationForm";
 import { useAuth } from "../contexts/AuthContext";
@@ -96,6 +97,8 @@ function Reservation() {
   const [totalRemaining, setTotalRemaining] = useState(0);
   //const [nbRemainingPayments, setNbRemainingPayments] = useState(0);  
   
+  const priceChanged = totalPrice !== reservationData?.totalPrice;
+
   // Détection si la prestation est entièrement payée
   const isFullyPaid = reservationData && reservationData.paymentDetails?.every(payment => payment.isPaid) || false;
   
@@ -173,6 +176,7 @@ function Reservation() {
       if(reservationData.paymentDetails.length > 0) {
         setPaymentPercentages([]);
         setPaymentValues([]);
+        setPaymentDetails([]);
 
         (reservationData.paymentDetails).map(payment => {
           setPaymentPercentages(prevPercentages => [
@@ -183,16 +187,25 @@ function Reservation() {
             ...prevValues,
             payment.value
           ]);
+
           if (payment.isPaid) {
             totalPaid += payment.value;
             //nbPaid++;
           }
+          setPaymentDetails(prevDetails => [
+            ...prevDetails,
+            {
+              paymentNumber: payment.paymentNumber,
+              percentage: calculatePercentage(payment.value, reservationData.totalPrice),
+              value: payment.value,
+              isPaid: payment.isPaid,
+              paymentDate:  format(new Date(payment.paymentDate), "dd/MM/yyyy"),
+              paymentMode: payment.paymentMode
+            }
+          ]);
         });
       }
-
-      //setNbRemainingPayments(getNbPayments() - nbPaid);
       setTotalRemaining(reservationData.totalPrice - totalPaid);
-
     }}, [isEditing,reservationData, clients]);
 
   const handleOpenConfirmDialog = index => {
@@ -435,7 +448,6 @@ function Reservation() {
 
   // Mise à jour des pourcentages et calcul des montants en euros lorsque le plan de paiement change
   const handlePaymentPlanChange = e => {
-    console.log("handlePaymentPlanChange", e.target.value);
     const selectedPlan = e.target.value;
     setPaymentPlan(selectedPlan);
 
@@ -455,10 +467,10 @@ function Reservation() {
     setPaymentValues(calculatePaymentValues(totalPrice, updatedPercentages));
   };
 
-  // Fonction pour recalculer et valider les pourcentages
+  // Fonction pour recalculer et valider les pourcentages en mode création
   const handleRecalculate = () => {
     const totalPercentage = paymentPercentages.reduce(
-      (acc, curr) => acc + curr,
+      (acc, curr) => parseInt(acc) + parseInt(curr),
       0
     );
     if (totalPercentage !== 100) {
@@ -468,6 +480,42 @@ function Reservation() {
       setPaymentValues(calculatePaymentValues(totalPrice, paymentPercentages));
     }
   };
+
+
+  /**
+   *  Function to adjuste the percentage of payment when the total price is changed in editing mode
+   */
+  const handlePercentageDistributionPayments = () => {
+    if (totalPrice === reservationData.totalPrice) {
+      enqueueSnackbar("Aucun changement dans le prix", { variant: "info" });
+      return;
+    }
+    setPaymentPercentages(recalculatePaymentPercentages());
+    enqueueSnackbar("Pourcentages mis à jour avec succès", { variant: "success" });
+  };
+
+
+  const recalculatePaymentPercentages = () => {
+    if (!totalPrice || totalPrice <= 0) {
+      console.error("Le totalPrice est invalide.");
+      return [];
+    }
+
+    // Recalcul des pourcentages en fonction des valeurs actuelles des paiements
+    const updatedPercentages = paymentDetails.map(paymentValue => {
+      const percentage = ((parseFloat(paymentValue.value) / parseFloat(totalPrice)) * 100).toFixed(2); // Arrondi à deux décimales
+      return parseFloat(percentage); // Convertir en float pour éviter les chaînes
+    });
+
+    // Vérification que la somme des pourcentages est cohérente
+    const totalPercentage = updatedPercentages.reduce((sum, pct) => sum + pct, 0);
+    if (totalPercentage !== 100) {
+      console.warn(`La somme des pourcentages est ${totalPercentage}% au lieu de 100%.`);
+    }
+
+    return updatedPercentages;
+  };
+
 
 
   /**
@@ -484,37 +532,13 @@ function Reservation() {
         const newValue = totalPrice - reservationData.totalPrice;
         const newRemaining = totalRemaining + newValue;
 
-        console.log("newRemaining", newRemaining);
-        // changer la valeur du champs `paymentValue_${index}` avec la nouvelle valeur  newRemaining
-        // replace `paymentValue_${index}` value by the new value newRemaining
-        //
         const updatedPayments = reservationData.paymentDetails.map((payment, index) => {
           if (index === lastUnpaidIndex) {
-            console.log("ici");
-            return { ...payment, value: newRemaining };
+            return { ...payment, value: newRemaining.toFixed(2) };
           }
           return payment;
         });
-
-        console.log("newRemaining", reservationData.paymentDetails);
-
-        const updatedPaymentsWithPercentages = updatedPayments.map(payment => ({
-          ...payment,
-          percentage: ((payment.value / totalPrice) * 100).toFixed(2)
-        }));
-
-        setPaymentDetails(updatedPaymentsWithPercentages);
-    
-        // paymentValues[lastUnpaidIndex].value  = newRemaining;
-      
-
-        // Recalculer les pourcentages
-        // const updatedPaymentsWithPercentages = updatedPayments.map(payment => ({
-        //   ...payment,
-        //   percentage: ((payment.value / totalPrice) * 100).toFixed(2)
-        // }));
-
-      //setPaymentDetails(updatedPaymentsWithPercentages);
+        setPaymentDetails(updatedPayments);
       }
     }
   }, [totalPrice, reservationData, totalRemaining]);
@@ -1021,7 +1045,7 @@ function Reservation() {
                           </TableRow>
                         </TableHead>
                         <TableBody>     
-                          {reservationData && reservationData.paymentDetails.map((payment, index) => (
+                          {reservationData && paymentDetails.map((payment, index) => (
                             <TableRow key={index}>
                               <TableCell>{`n°${index + 1}`}</TableCell>
                               <TableCell>
@@ -1045,7 +1069,7 @@ function Reservation() {
                               <TableCell>
                                 {payment.isPaid && (
                                   <Typography variant="caption" color="textSecondary">
-                                    {payment.value} € (Réglé le {format(new Date(payment.paymentDate), "dd/MM/yyyy")} par {payment.paymentMode})
+                                    {payment.value} € (Réglé le {payment.paymentDate} par {payment.paymentMode})
                                   </Typography>
                                 )}
                                 {!payment.isPaid && (
@@ -1091,11 +1115,12 @@ function Reservation() {
                   { paymentPlan !== "Non" && (
                     <Button
                       variant="contained"
-                      color="primary"
-                      onClick={ handleRecalculate }
-                      style={ { marginTop: "20px", fontSize: "x-small" } }
+                      color={isEditing && priceChanged ? "warning" : "primary"}
+                      onClick={isEditing ? handlePercentageDistributionPayments : handleRecalculate}
+                      style={{ marginTop: "20px", fontSize: "x-small" }}
+                      startIcon={priceChanged ? <CachedIcon /> : null} // Affiche l'icône uniquement si priceChanged est vrai
                     >
-                      Recalculer la répartition
+                      {priceChanged ? "Recalculer la répartition" : "Recalculer"}
                     </Button>
                   ) }
 
