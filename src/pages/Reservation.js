@@ -5,7 +5,7 @@ import { format, parseISO, set } from "date-fns";
 import frLocale from "date-fns/locale/fr";
 import { useSnackbar } from "notistack";
 
-import { PersonAdd as PersonAddIcon } from "@mui/icons-material";
+import { ExitToApp, PersonAdd as PersonAddIcon } from "@mui/icons-material";
 import CachedIcon from "@mui/icons-material/Cached";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -101,6 +101,20 @@ function Reservation() {
 
   // Détection si la prestation est entièrement payée
   const isFullyPaid = reservationData && reservationData.paymentDetails?.every(payment => payment.isPaid) || false;
+
+  /**
+   *  Fonction pour récupérer le nombre de paiements
+   * @returns 
+   */
+  const getNbPayments = () => {
+    if (reservationData.paymentPlan === "2x") {
+      return 2;
+    } else if (reservationData.paymentPlan === "3x") {
+      return 3;
+    } else {
+      return 1;
+    } 
+  };
   
   const handleSaveClick = () => {
     if (isFullyPaid) {
@@ -131,8 +145,10 @@ function Reservation() {
               },
               eventName: location.eventName,
               isDefault: location.isDefault,
-              eventDate: new Date(location.eventDate._seconds * 1000)
-            ////format(new Date(location.eventDate._seconds * 1000), "dd/MM/yyyy HH:mm")
+              eventDate: parseISO(location.eventDate)
+              //format(new Date(location.eventDate.seconds * 1000), "dd/MM/yyyy HH:mm")
+              //new Date(location.eventDate._seconds * 1000)
+            
             }
           ]);
         });}
@@ -144,27 +160,13 @@ function Reservation() {
           setDiscounts(prevDiscounts => [
             ...prevDiscounts,
             {
-              discountName: discount.name,
-              discountAmount: discount.value,
-              isPercentage: discount.percent
+              discountName: discount.discountName,
+              discountAmount: discount.discountAmount,
+              isPercentage: discount.isPercentage
             }
           ]);
         });
       }
-
-      /**
-   *  Fonction pour récupérer le nombre de paiements
-   * @returns 
-   */
-      const getNbPayments = () => {
-        if (reservationData.paymentPlan === "2x") {
-          return 2;
-        } else if (reservationData.paymentPlan === "3x") {
-          return 3;
-        } else {
-          return 1;
-        } 
-      };
 
       const calculatePercentage = (paymentValue, totalPrice) => {
         return ((paymentValue / totalPrice) * 100).toFixed(0);
@@ -199,7 +201,7 @@ function Reservation() {
               percentage: calculatePercentage(payment.value, reservationData.totalPrice),
               value: payment.value,
               isPaid: payment.isPaid,
-              paymentDate:  format(new Date(payment.paymentDate), "dd/MM/yyyy"),
+              paymentDate:  payment.paymentDate ? format(new Date(payment.paymentDate), "dd/MM/yyyy") : null,
               paymentMode: payment.paymentMode
             }
           ]);
@@ -250,7 +252,7 @@ function Reservation() {
           : "",
         eventName: location.eventName,
         isDefault: location.isDefault || false,
-        eventDate: location.eventDate
+        eventDate: location.eventDate.toISOString()
       })),
       workflow: selectedWorkflow
         ? {
@@ -284,6 +286,7 @@ function Reservation() {
         const orderRef = doc(db, `users/${currentUser.uid}/orders`, reservationData.id);
         await updateDoc(orderRef, orderData);
         enqueueSnackbar("Réservation mise à jour avec succès", { variant: "success" });
+        navigate("/agenda");
       } else {
         await addDoc(collection(db, `users/${currentUser.uid}/orders`), orderData); // Ajout de la réservation dans Firestore
         enqueueSnackbar("Réservation enregistrée avec succès.", {
@@ -297,6 +300,7 @@ function Reservation() {
         { variant: "error" }
       );
     }
+      
   };
 
   useEffect(() => {
@@ -460,7 +464,6 @@ function Reservation() {
     } else {
       updatedPercentages = [100]; // Paiement unique ou "Non"
     }
-
     // Mettre à jour les pourcentages
     setPaymentPercentages(updatedPercentages);
     // Calculer les valeurs basées sur ces pourcentages
@@ -518,30 +521,62 @@ function Reservation() {
 
 
 
-  /**
-   *    When we are in editing mode and the totalPrice is different of reservationData.totalPrice 
-   *    then we need to recalculate the payment values without changing the payment value already paid
-   */
   useEffect(() => {
-    if (reservationData && totalPrice !== reservationData.totalPrice) { 
-      //adjustUnpaidPayment();
+    if (reservationData && totalPrice !== reservationData.totalPrice) {
       const unpaidPayments = reservationData.paymentDetails.filter(payment => !payment.isPaid);
+      const paidPayments = reservationData.paymentDetails.filter(payment => payment.isPaid);
+      const totalPaid = paidPayments.reduce((sum, payment) => sum + parseFloat(payment.value), 0);
+      const newRemaining = totalPrice - totalPaid;
 
-      if (unpaidPayments.length === 1) {
+      if (newRemaining <= 0) {
+        console.warn("Le montant restant est inférieur ou égal à zéro.");
+        return;
+      }
+
+      if (unpaidPayments.length === getNbPayments()) {
+      // Tous les paiements sont non réglés, appliquer la répartition initiale
+        const defaultPercentages = reservationData.paymentPlan === "2x" ? [50, 50] 
+          : reservationData.paymentPlan === "3x" ? [30, 50, 20] 
+            : [100];
+
+        const updatedPayments = defaultPercentages.map((percentage, index) => ({
+          ...unpaidPayments[index],
+          value: ((totalPrice * percentage) / 100).toFixed(2),
+          percentage
+        }));
+
+        setPaymentDetails(updatedPayments);
+      } else if (unpaidPayments.length === 1) {
+      // Un seul paiement non réglé, lui attribuer tout le montant restant
         const lastUnpaidIndex = reservationData.paymentDetails.findIndex(payment => !payment.isPaid);
-        const newValue = totalPrice - reservationData.totalPrice;
-        const newRemaining = totalRemaining + newValue;
 
-        const updatedPayments = reservationData.paymentDetails.map((payment, index) => {
-          if (index === lastUnpaidIndex) {
-            return { ...payment, value: newRemaining.toFixed(2) };
+        const updatedPayments = reservationData.paymentDetails.map((payment, index) =>
+          index === lastUnpaidIndex
+            ? { ...payment, value: newRemaining.toFixed(2), percentage: ((newRemaining / totalPrice) * 100).toFixed(2) }
+            : payment
+        );
+
+        setPaymentDetails(updatedPayments);
+      } else if (unpaidPayments.length === 2) {
+      // Deux paiements non réglés, répartir la valeur ajoutée/retirée en parts égales
+        const valueDifference = totalPrice - reservationData.totalPrice; // Différence de montant
+        const halfValue = valueDifference / 2;
+
+        const updatedPayments = reservationData.paymentDetails.map(payment => {
+          if (!payment.isPaid) {
+            return {
+              ...payment,
+              value: (parseFloat(payment.value) + halfValue).toFixed(2),
+              percentage: (((parseFloat(payment.value) + halfValue) / totalPrice) * 100).toFixed(2)
+            };
           }
           return payment;
         });
+
         setPaymentDetails(updatedPayments);
       }
     }
-  }, [totalPrice, reservationData, totalRemaining]);
+  }, [totalPrice, reservationData]);
 
   return (
     <div>

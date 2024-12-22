@@ -113,7 +113,7 @@ export default function ReservationUpload({ reservation }) {
 
   return (
     <>
-      <Tooltip title="Upload">
+      <Tooltip title="Télécharger et consulter des documents">
         <IconButton onClick={ handleClickOpen }>
           <StyledBadge badgeContent={ files.length || 0 } color="secondary">
             <CloudUploadIcon  color="primary"/>

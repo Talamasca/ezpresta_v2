@@ -35,6 +35,7 @@ export const getAvailableYears = async userId => {
   ordersSnapshot.forEach(doc => {
     const order = doc.data();
     const year = new Date(order.selectedDate).getFullYear();
+
     minYear = Math.min(minYear, year);
     maxYear = Math.max(maxYear, year);
   });

@@ -233,7 +233,7 @@ const PDFInvoiceGenerator = ({ reservation, type }) => {
 
   return (
     <>
-      <Tooltip title="Options de PDF">
+      <Tooltip title="Factures et Devis (PDF)">
         <IconButton onClick={ openMenu }>
           <PictureAsPdfIcon color="primary" />
         </IconButton>

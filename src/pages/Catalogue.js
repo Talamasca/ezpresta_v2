@@ -102,7 +102,7 @@ const Catalogue = () => {
     try {
       await deleteDoc(doc(db, `users/${currentUser.uid}/catalog`, productId));
       setCatalog(catalog.filter(product => product.id !== productId));
-      enqueueSnackbar("Product deleted successfully", { variant: "success" });
+      enqueueSnackbar("Produit supprimé avec succès", { variant: "success" });
     } catch (error) {
       enqueueSnackbar("Error deleting product: " + error.message, {
         variant: "error"

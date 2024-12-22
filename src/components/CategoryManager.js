@@ -80,7 +80,7 @@ const CategoryManager = ({ open, handleClose }) => {
       const docRef = await addDoc(categoriesRef, { name: newCategory });
       setCategories([...categories, { id: docRef.id, name: newCategory }]);
       setNewCategory("");
-      enqueueSnackbar("Category added successfully", { variant: "success" });
+      enqueueSnackbar("Catégorie ajoutée avec succès", { variant: "success" });
     } catch (error) {
       enqueueSnackbar("Error adding category: " + error.message, {
         variant: "error"
@@ -98,7 +98,7 @@ const CategoryManager = ({ open, handleClose }) => {
         )
       );
       setEditingCategory(null);
-      enqueueSnackbar("Category updated successfully", { variant: "success" });
+      enqueueSnackbar("Catégorie mise à jour avec succès", { variant: "success" });
     } catch (error) {
       enqueueSnackbar("Error updating category: " + error.message, {
         variant: "error"
@@ -111,7 +111,7 @@ const CategoryManager = ({ open, handleClose }) => {
       const categoryDoc = doc(db, `users/${currentUser.uid}/categories`, id);
       await deleteDoc(categoryDoc);
       setCategories(categories.filter(category => category.id !== id));
-      enqueueSnackbar("Category deleted successfully", { variant: "success" });
+      enqueueSnackbar("Catégorie effacée avec succès", { variant: "success" });
     } catch (error) {
       enqueueSnackbar("Error deleting category: " + error.message, {
         variant: "error"

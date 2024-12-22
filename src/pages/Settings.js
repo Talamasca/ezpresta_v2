@@ -121,7 +121,7 @@ const Settings = () => {
     try {
       const userDoc = doc(db, `users/${currentUser.uid}`);
       await updateDoc(userDoc, { iban: userData.iban, bic: userData.bic });
-      enqueueSnackbar("IBAN/BIC updated successfully", { variant: "success" });
+      enqueueSnackbar("IBAN/BIC mis à jour avec succès", { variant: "success" });
     } catch (error) {
       enqueueSnackbar(`Error updating IBAN: ${error.message}`, {
         variant: "error"
@@ -142,7 +142,7 @@ const Settings = () => {
         setUserData({ ...userData, logo: newLogo });
         setLogoFile(file);
         await updateUserData({ logo: newLogo });
-        enqueueSnackbar("Logo updated successfully", { variant: "success" });
+        enqueueSnackbar("Logo mis à jour avec succès", { variant: "success" });
       };
       reader.readAsDataURL(file);
     } else {
@@ -156,7 +156,7 @@ const Settings = () => {
     try {
       const userDoc = doc(db, `users/${currentUser.uid}`);
       await updateDoc(userDoc, userData);
-      enqueueSnackbar("Settings updated successfully", { variant: "success" });
+      enqueueSnackbar("Paramètre mis à jour avec succès", { variant: "success" });
 
       if (userData.email !== currentUser.email) {
         await updateEmail(userData.email);
@@ -175,7 +175,7 @@ const Settings = () => {
     try {
       const userDoc = doc(db, `users/${currentUser.uid}`);
       await updateDoc(userDoc, { [field]: userData[field] });
-      enqueueSnackbar("Settings updated successfully", {
+      enqueueSnackbar("Paramètre mis à jour avec succès", {
         variant: "success"
       });
     } catch (error) {

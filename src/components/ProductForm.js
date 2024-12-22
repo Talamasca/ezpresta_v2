@@ -113,7 +113,7 @@ const ProductForm = ({ open, handleClose, productId, userId, onSave }) => {
           { ...formData, id: newProductId },
           { merge: true }
         );
-        enqueueSnackbar("Product saved successfully", { variant: "success" });
+        enqueueSnackbar("Produit sauvegardé avec succès", { variant: "success" });
         onSave({ ...formData, id: newProductId });
         handleClose();
       } catch (error) {
